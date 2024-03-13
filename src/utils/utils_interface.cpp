@@ -91,20 +91,19 @@ void KZUtils::AddTimer(CTimerBase *timer, bool preserveMapChange)
 
 void KZUtils::RemoveTimer(CTimerBase *timer)
 {
-	FOR_EACH_VEC(g_PersistentTimers, i)
+	FOR_EACH_VEC(g_PersistentTimers, it)
 	{	
-		if (g_PersistentTimers.Element(i) == timer)
+		if (g_PersistentTimers.Element(it) == timer)
 		{
-			g_PersistentTimers.Remove(i);
+			g_PersistentTimers.Remove(it);
 			return;
 		}
 	}
-
-	FOR_EACH_VEC(g_NonPersistentTimers, i)
+	FOR_EACH_VEC(g_NonPersistentTimers, it)
 	{
-		if (g_NonPersistentTimers.Element(i) == timer)
+		if (g_NonPersistentTimers.Element(it) == timer)
 		{
-			g_NonPersistentTimers.Remove(i);
+			g_NonPersistentTimers.Remove(it);
 			return;
 		}
 	}

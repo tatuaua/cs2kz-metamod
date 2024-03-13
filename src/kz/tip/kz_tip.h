@@ -27,6 +27,5 @@ public:
 private:
 	bool ShouldPrintTip();
 	void PrintTip();
-	static void ShuffleTips();
 	static void LoadTips();
 };
