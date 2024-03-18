@@ -12,11 +12,6 @@ CGameConfig *KZUtils::GetGameConfig()
 	return g_pGameConfig;
 }
 
-CSchemaSystem *KZUtils::GetSchemaSystemPointer()
-{
-	return interfaces::pSchemaSystem;
-}
-
 const CGlobalVars *KZUtils::GetServerGlobals()
 {
 	return &(g_KZPlugin.serverGlobals);
@@ -26,8 +21,10 @@ CGlobalVars *KZUtils::GetGlobals()
 {
 	INetworkGameServer *server = g_pNetworkServerService->GetIGameServer();
 
-	if(!server)
+	if (!server)
+	{
 		return nullptr;
+	}
 
 	return server->GetGlobals();
 }
@@ -82,7 +79,7 @@ void KZUtils::AddTimer(CTimerBase *timer, bool preserveMapChange)
 	if (preserveMapChange)
 	{
 		g_PersistentTimers.AddToTail(timer);
-	} 
+	}
 	else
 	{
 		g_NonPersistentTimers.AddToTail(timer);
@@ -92,7 +89,7 @@ void KZUtils::AddTimer(CTimerBase *timer, bool preserveMapChange)
 void KZUtils::RemoveTimer(CTimerBase *timer)
 {
 	FOR_EACH_VEC(g_PersistentTimers, i)
-	{	
+	{
 		if (g_PersistentTimers.Element(i) == timer)
 		{
 			g_PersistentTimers.Remove(i);
@@ -108,4 +105,3 @@ void KZUtils::RemoveTimer(CTimerBase *timer)
 		}
 	}
 }
-

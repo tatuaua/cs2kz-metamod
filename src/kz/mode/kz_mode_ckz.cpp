@@ -10,7 +10,7 @@ KZClassicModePlugin g_KZClassicModePlugin;
 CGameConfig *g_pGameConfig = NULL;
 KZUtils *g_pKZUtils = NULL;
 KZModeManager *g_pModeManager = NULL;
-ModeServiceFactory g_ModeFactory = [](KZPlayer *player) -> KZModeService *{ return new KZClassicModeService(player); };
+ModeServiceFactory g_ModeFactory = [](KZPlayer *player) -> KZModeService * { return new KZClassicModeService(player); };
 PLUGIN_EXPOSE(KZClassicModePlugin, g_KZClassicModePlugin);
 
 bool KZClassicModePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
@@ -31,13 +31,24 @@ bool KZClassicModePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t m
 		return false;
 	}
 	modules::Initialize();
-	if (!interfaces::Initialize(ismm, error, maxlen)
-		|| nullptr == (g_pGameConfig = g_pKZUtils->GetGameConfig())
-		|| !g_pModeManager->RegisterMode(g_PLID, MODE_NAME_SHORT, MODE_NAME, g_ModeFactory))
+	if (!interfaces::Initialize(ismm, error, maxlen))
 	{
+		V_snprintf(error, maxlen, "Failed to initialize interfaces");
 		return false;
 	}
-	
+
+	if (nullptr == (g_pGameConfig = g_pKZUtils->GetGameConfig()))
+	{
+		V_snprintf(error, maxlen, "Failed to get game config");
+		return false;
+	}
+
+	if (!g_pModeManager->RegisterMode(g_PLID, MODE_NAME_SHORT, MODE_NAME, g_ModeFactory))
+	{
+		V_snprintf(error, maxlen, "Failed to register mode");
+		return false;
+	}
+
 	return true;
 }
 
@@ -45,10 +56,6 @@ bool KZClassicModePlugin::Unload(char *error, size_t maxlen)
 {
 	g_pModeManager->UnregisterMode(MODE_NAME);
 	return true;
-}
-
-void KZClassicModePlugin::AllPluginsLoaded()
-{
 }
 
 bool KZClassicModePlugin::Pause(char *error, size_t maxlen)
@@ -110,30 +117,38 @@ CGameEntitySystem *GameEntitySystem()
 {
 	return g_pKZUtils->GetGameEntitySystem();
 }
+
 /*
 	Actual mode stuff.
 */
-#define SPEED_NORMAL 250.0f
 
-#define PS_SPEED_MAX 26.0f
-#define PS_MIN_REWARD_RATE 7.0f // Minimum computed turn rate for any prestrafe reward
-#define PS_MAX_REWARD_RATE 16.0f // Ideal computed turn rate for maximum prestrafe reward
-#define PS_MAX_PS_TIME 0.55f // Time to reach maximum prestrafe speed with optimal turning
-#define PS_TURN_RATE_WINDOW 0.02f // Turn rate will be computed over this amount of time
-#define PS_DECREMENT_RATIO 3.0f // Prestrafe will lose this fast compared to gaining
-#define PS_RATIO_TO_SPEED 0.5f
-// Prestrafe ratio will be not go down after landing for this amount of time - helps with small movements after landing
-// Ideally should be much higher than the perf window!
-#define PS_LANDING_GRACE_PERIOD 0.25f 
+void KZClassicModeService::Reset()
+{
+	this->revertJumpTweak = {};
+	this->preJumpZSpeed = {};
+	this->tweakedJumpZSpeed = {};
+	this->hasValidDesiredViewAngle = {};
+	this->lastValidDesiredViewAngle = vec3_angle;
+	this->lastJumpReleaseTime = {};
+	this->oldDuckPressed = {};
+	this->forcedUnduck = {};
+	this->postProcessMovementZSpeed = {};
 
-#define BH_PERF_WINDOW 0.02f // Any jump performed after landing will be a perf for this much time
-#define BH_BASE_MULTIPLIER 51.5f // Multiplier for how much speed would a perf gain in ideal scenario
-#define BH_LANDING_DECREMENT_MULTIPLIER 75.0f // How much would a non real perf impact the takeoff speed
-// Magic number so that landing speed at max ground prestrafe speed would result in the same takeoff velocity
-#define BH_NORMALIZE_FACTOR (BH_BASE_MULTIPLIER * log(SPEED_NORMAL + PS_SPEED_MAX) - (SPEED_NORMAL + PS_SPEED_MAX)) 
+	this->angleHistory.RemoveAll();
+	this->leftPreRatio = {};
+	this->rightPreRatio = {};
+	this->bonusSpeed = {};
+	this->maxPre = {};
 
-#define DUCK_SPEED_NORMAL 8.0f
-#define DUCK_SPEED_MINIMUM 6.0234375f // Equal to if you just ducked/unducked for the first time in a while
+	this->didTPM = {};
+	this->overrideTPM = {};
+	this->tpmVelocity = vec3_origin;
+	this->tpmOrigin = vec3_origin;
+	this->lastValidPlane = vec3_origin;
+
+	this->airMoving = {};
+	this->tpmTriggerFixOrigins.RemoveAll();
+}
 
 const char *KZClassicModeService::GetModeName()
 {
@@ -148,8 +163,7 @@ const char *KZClassicModeService::GetModeShortName()
 DistanceTier KZClassicModeService::GetDistanceTier(JumpType jumpType, f32 distance)
 {
 	// No tiers given for 'Invalid' jumps.
-	if (jumpType == JumpType_Invalid || jumpType == JumpType_FullInvalid
-		|| jumpType == JumpType_Fall || jumpType == JumpType_Other
+	if (jumpType == JumpType_Invalid || jumpType == JumpType_FullInvalid || jumpType == JumpType_Fall || jumpType == JumpType_Other
 		|| distance > 500.0f)
 	{
 		return DistanceTier_None;
@@ -165,9 +179,10 @@ DistanceTier KZClassicModeService::GetDistanceTier(JumpType jumpType, f32 distan
 	return tier;
 }
 
-f32 KZClassicModeService::GetPlayerMaxSpeed()
+META_RES KZClassicModeService::GetPlayerMaxSpeed(f32 &maxSpeed)
 {
-	return SPEED_NORMAL + this->GetPrestrafeGain();
+	maxSpeed = SPEED_NORMAL + this->GetPrestrafeGain();
+	return MRES_SUPERCEDE;
 }
 
 const char **KZClassicModeService::GetModeConVarValues()
@@ -182,8 +197,8 @@ void KZClassicModeService::OnJump()
 	this->player->GetVelocity(&velocity);
 	this->preJumpZSpeed = velocity.z;
 	// Emulate the 128t vertical velocity before jumping
-	if (this->player->GetPawn()->m_fFlags & FL_ONGROUND && this->player->GetPawn()->m_hGroundEntity().IsValid() && 
-		(this->preJumpZSpeed < 0.0f || !this->player->duckBugged))
+	if (this->player->GetPawn()->m_fFlags & FL_ONGROUND && this->player->GetPawn()->m_hGroundEntity().IsValid()
+		&& (this->preJumpZSpeed < 0.0f || !this->player->duckBugged))
 	{
 		velocity.z += 0.25 * this->player->GetPawn()->m_flGravityScale() * 800 * ENGINE_FIXED_TICK_INTERVAL;
 		this->player->SetVelocity(velocity);
@@ -324,7 +339,7 @@ void KZClassicModeService::InsertSubtickTiming(float time)
 	CCSPlayer_MovementServices *moveServices = this->player->GetMoveServices();
 	if (!moveServices
 		|| fabs(roundf(time) - time) < 0.001 // Don't create subtick too close to real time, there will be movement processing there anyway.
-		|| time * ENGINE_FIXED_TICK_RATE - g_pKZUtils->GetServerGlobals()->tickcount > 1.0f // Don't create subtick timing too far into the future.
+		|| time * ENGINE_FIXED_TICK_RATE - g_pKZUtils->GetServerGlobals()->tickcount > 1.0f   // Don't create subtick timing too far into the future.
 		|| time * ENGINE_FIXED_TICK_RATE - g_pKZUtils->GetServerGlobals()->tickcount < -1.0f) // Don't create subtick timing too far back.
 	{
 		return;
@@ -372,7 +387,7 @@ void KZClassicModeService::InterpolateViewAngles()
 	{
 		return;
 	}
-	
+
 	// First half of the movement, tweak the angle to be the middle of the desired angle and the last angle
 	QAngle newAngles = player->currentMoveData->m_vecViewAngles;
 	QAngle oldAngles = this->hasValidDesiredViewAngle ? this->lastValidDesiredViewAngle : this->player->moveDataPost.m_vecViewAngles;
@@ -406,7 +421,11 @@ void KZClassicModeService::RestoreInterpolatedViewAngles()
 void KZClassicModeService::RemoveCrouchJumpBind()
 {
 	this->forcedUnduck = false;
-	if (this->player->GetPawn()->m_fFlags & FL_ONGROUND && !this->oldDuckPressed && !this->player->GetMoveServices()->m_bOldJumpPressed && this->player->IsButtonPressed(IN_JUMP))
+
+	bool onGround = this->player->GetPawn()->m_fFlags & FL_ONGROUND;
+	bool justJumped = !this->player->GetMoveServices()->m_bOldJumpPressed && this->player->IsButtonPressed(IN_JUMP);
+
+	if (onGround && !this->oldDuckPressed && justJumped)
 	{
 		this->player->GetMoveServices()->m_nButtons()->m_pButtonStates[0] &= ~IN_DUCK;
 		this->forcedUnduck = true;
@@ -440,7 +459,9 @@ void KZClassicModeService::UpdateAngleHistory()
 	}
 	this->angleHistory.RemoveMultipleFromHead(oldEntries);
 	if ((this->player->GetPawn()->m_fFlags & FL_ONGROUND) == 0)
+	{
 		return;
+	}
 
 	AngleHistory *angHist = this->angleHistory.AddToTailGetPtr();
 	angHist->when = g_pKZUtils->GetGlobals()->curtime;
@@ -474,7 +495,9 @@ void KZClassicModeService::UpdateAngleHistory()
 
 	Vector wishdir;
 	for (int i = 0; i < 2; i++)
+	{
 		wishdir[i] = forward[i] * fmove + right[i] * smove;
+	}
 	wishdir[2] = 0;
 
 	VectorNormalize(wishdir);
@@ -507,8 +530,14 @@ void KZClassicModeService::CalcPrestrafe()
 		totalDuration += this->angleHistory[i].duration;
 	}
 	f32 averageRate;
-	if (totalDuration == 0) averageRate = 0;
-	else averageRate = sumWeightedAngles / totalDuration;
+	if (totalDuration == 0)
+	{
+		averageRate = 0;
+	}
+	else
+	{
+		averageRate = sumWeightedAngles / totalDuration;
+	}
 
 	f32 rewardRate = Clamp(fabs(averageRate) / PS_MAX_REWARD_RATE, 0.0f, 1.0f) * g_pKZUtils->GetGlobals()->frametime;
 	f32 punishRate = 0.0f;
@@ -524,9 +553,14 @@ void KZClassicModeService::CalcPrestrafe()
 		this->player->GetVelocity(&velocity);
 
 		f32 currentPreRatio;
-		if (velocity.Length2D() <= 0.0f) currentPreRatio = 0.0f;
-		else currentPreRatio = pow(this->bonusSpeed / PS_SPEED_MAX * SPEED_NORMAL / velocity.Length2D(), 1 / PS_RATIO_TO_SPEED) * PS_MAX_PS_TIME;
-
+		if (velocity.Length2D() <= 0.0f)
+		{
+			currentPreRatio = 0.0f;
+		}
+		else
+		{
+			currentPreRatio = pow(this->bonusSpeed / PS_SPEED_MAX * SPEED_NORMAL / velocity.Length2D(), 1 / PS_RATIO_TO_SPEED) * PS_MAX_PS_TIME;
+		}
 
 		this->leftPreRatio = MIN(this->leftPreRatio, currentPreRatio);
 		this->rightPreRatio = MIN(this->rightPreRatio, currentPreRatio);
@@ -542,8 +576,13 @@ void KZClassicModeService::CalcPrestrafe()
 		rewardRate = g_pKZUtils->GetGlobals()->frametime;
 		// Raise both left and right pre to the same value as the player is in the air.
 		if (this->leftPreRatio < this->rightPreRatio)
+		{
 			this->leftPreRatio = Clamp(this->leftPreRatio + rewardRate, 0.0f, rightPreRatio);
-		else this->rightPreRatio = Clamp(this->rightPreRatio + rewardRate, 0.0f, leftPreRatio);
+		}
+		else
+		{
+			this->rightPreRatio = Clamp(this->rightPreRatio + rewardRate, 0.0f, leftPreRatio);
+		}
 	}
 }
 
@@ -569,8 +608,9 @@ void KZClassicModeService::CheckVelocityQuantization()
 void KZClassicModeService::SlopeFix()
 {
 	CTraceFilterPlayerMovementCS filter;
-	g_pKZUtils->InitPlayerMovementTraceFilter(filter, this->player->GetPawn(), 
-		this->player->GetPawn()->m_Collision().m_collisionAttribute().m_nInteractsWith(), COLLISION_GROUP_PLAYER_MOVEMENT);
+	g_pKZUtils->InitPlayerMovementTraceFilter(filter, this->player->GetPawn(),
+											  this->player->GetPawn()->m_Collision().m_collisionAttribute().m_nInteractsWith(),
+											  COLLISION_GROUP_PLAYER_MOVEMENT);
 
 	Vector ground = this->player->currentMoveData->m_vecAbsOrigin;
 	ground.z -= 2;
@@ -578,11 +618,7 @@ void KZClassicModeService::SlopeFix()
 	f32 standableZ = 0.7f; // Equal to the mode's cvar.
 
 	bbox_t bounds;
-	bounds.mins = { -16.0, -16.0, 0.0 };
-	bounds.maxs = { 16.0, 16.0, 72.0 };
-
-	if (this->player->GetMoveServices()->m_bDucked()) bounds.maxs.z = 54.0;
-
+	this->player->GetBBoxBounds(&bounds);
 	trace_t_s2 trace;
 	g_pKZUtils->InitGameTrace(&trace);
 
@@ -638,7 +674,7 @@ internal void ClipVelocity(Vector &in, Vector &normal, Vector &out)
 	float adjust = DotProduct(out, normal);
 	if (adjust < 0.0f)
 	{
-		adjust = MIN(adjust, -1/512);
+		adjust = MIN(adjust, -1 / 512);
 		out -= (normal * adjust);
 	}
 }
@@ -675,7 +711,7 @@ internal bool IsValidMovementTrace(trace_t_s2 &tr, bbox_t bounds, CTraceFilterPl
 	{
 		return false;
 	}
-	
+
 	g_pKZUtils->TracePlayerBBox(tr.endpos, tr.startpos, bounds, filter, stuck);
 	// For whatever reason if you can hit something in only one direction and not the other way around.
 	// Only happens since Call to Arms update, so this fraction check is commented out until it is fixed.
@@ -707,18 +743,18 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t_s2 *pFirs
 		return;
 	}
 	Vector primalVelocity = velocity;
-	bool validPlane{};
+	bool validPlane {};
 
-	f32 allFraction{};
+	f32 allFraction {};
 	trace_t_s2 pm;
-	u32 bumpCount{};
+	u32 bumpCount {};
 	Vector planes[5];
-	u32 numPlanes{};
+	u32 numPlanes {};
 	trace_t_s2 pierce;
 
 	bbox_t bounds;
-	bounds.mins = { -16, -16, 0 };
-	bounds.maxs = { 16, 16, 72 };
+	bounds.mins = {-16, -16, 0};
+	bounds.maxs = {16, 16, 72};
 
 	if (this->player->GetMoveServices()->m_bDucked())
 	{
@@ -726,7 +762,8 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t_s2 *pFirs
 	}
 
 	CTraceFilterPlayerMovementCS filter;
-	g_pKZUtils->InitPlayerMovementTraceFilter(filter, pawn, pawn->m_Collision().m_collisionAttribute().m_nInteractsWith(), COLLISION_GROUP_PLAYER_MOVEMENT);
+	g_pKZUtils->InitPlayerMovementTraceFilter(filter, pawn, pawn->m_Collision().m_collisionAttribute().m_nInteractsWith(),
+											  COLLISION_GROUP_PLAYER_MOVEMENT);
 
 	for (bumpCount = 0; bumpCount < MAX_BUMPS; bumpCount++)
 	{
@@ -746,13 +783,15 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t_s2 *pFirs
 				// Player won't hit anything, nothing to do.
 				break;
 			}
-			if (this->lastValidPlane.Length() > FLT_EPSILON && (!IsValidMovementTrace(pm, bounds, &filter) || pm.planeNormal.Dot(this->lastValidPlane) < RAMP_BUG_THRESHOLD))
+			if (this->lastValidPlane.Length() > FLT_EPSILON
+				&& (!IsValidMovementTrace(pm, bounds, &filter) || pm.planeNormal.Dot(this->lastValidPlane) < RAMP_BUG_THRESHOLD))
 			{
-				// We hit a plane that will significantly change our velocity. Make sure that this plane is significant enough.
+				// We hit a plane that will significantly change our velocity. Make sure that this plane is significant
+				// enough.
 				Vector direction = velocity.Normalized();
 				Vector offsetDirection;
-				f32 offsets[] = { 0.0f, -1.0f, 1.0f };
-				bool success{};
+				f32 offsets[] = {0.0f, -1.0f, 1.0f};
+				bool success {};
 				for (u32 i = 0; i < 3 && !success; i++)
 				{
 					for (u32 j = 0; j < 3 && !success; j++)
@@ -765,7 +804,7 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t_s2 *pFirs
 							}
 							else
 							{
-								offsetDirection = { offsets[i], offsets[j], offsets[k] };
+								offsetDirection = {offsets[i], offsets[j], offsets[k]};
 								// Check if this random offset is even valid.
 								trace_t_s2 test;
 								g_pKZUtils->TracePlayerBBox(start + offsetDirection * RAMP_PIERCE_DISTANCE, start, bounds, &filter, test);
@@ -774,19 +813,25 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t_s2 *pFirs
 									continue;
 								}
 							}
-							bool goodTrace{};
-							f32 ratio{};
-							bool hitNewPlane{};
+							bool goodTrace {};
+							f32 ratio {};
+							bool hitNewPlane {};
 							for (ratio = 0.025f; ratio <= 1.0f; ratio += 0.025f)
 							{
-								g_pKZUtils->TracePlayerBBox(start + offsetDirection * RAMP_PIERCE_DISTANCE * ratio, end + offsetDirection * RAMP_PIERCE_DISTANCE * ratio, bounds, &filter, pierce);
+								g_pKZUtils->TracePlayerBBox(start + offsetDirection * RAMP_PIERCE_DISTANCE * ratio,
+															end + offsetDirection * RAMP_PIERCE_DISTANCE * ratio, bounds, &filter, pierce);
 								if (!IsValidMovementTrace(pierce, bounds, &filter))
 								{
 									continue;
 								}
 								// Try until we hit a similar plane.
-								validPlane = pierce.fraction < 1.0f && pierce.fraction > 0.1f && pierce.planeNormal.Dot(this->lastValidPlane) >= RAMP_BUG_THRESHOLD;
-								hitNewPlane = pm.planeNormal.Dot(pierce.planeNormal) < NEW_RAMP_THRESHOLD && this->lastValidPlane.Dot(pierce.planeNormal) > NEW_RAMP_THRESHOLD;
+								// clang-format off
+								validPlane = pierce.fraction < 1.0f && pierce.fraction > 0.1f 
+											 && pierce.planeNormal.Dot(this->lastValidPlane) >= RAMP_BUG_THRESHOLD;
+
+								hitNewPlane = pm.planeNormal.Dot(pierce.planeNormal) < NEW_RAMP_THRESHOLD 
+											  && this->lastValidPlane.Dot(pierce.planeNormal) > NEW_RAMP_THRESHOLD;
+								// clang-format on
 								goodTrace = CloseEnough(pierce.fraction, 1.0f, FLT_EPSILON) || validPlane;
 								if (goodTrace)
 								{
@@ -857,21 +902,25 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t_s2 *pFirs
 					{
 						// Are we now moving against this plane?
 						if (velocity.Dot(planes[j]) < 0)
+						{
 							break; // not ok
+						}
 					}
 				}
 
 				if (j == numPlanes) // Didn't have to clip, so we're ok
+				{
 					break;
+				}
 			}
 			// Did we go all the way through plane set
 			if (i != numPlanes)
-			{	// go along this plane
+			{ // go along this plane
 				// pmove.velocity is set in clipping call, no need to set again.
 				;
 			}
 			else
-			{	// go along the crease
+			{ // go along the crease
 				if (numPlanes != 2)
 				{
 					VectorCopy(vec3_origin, velocity);
@@ -890,7 +939,6 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t_s2 *pFirs
 					break;
 				}
 			}
-
 		}
 	}
 	this->tpmOrigin = pm.endpos;
@@ -936,7 +984,9 @@ void KZClassicModeService::OnCategorizePosition(bool bStayOnGround)
 	this->player->GetBBoxBounds(&bounds);
 
 	CTraceFilterPlayerMovementCS filter;
-	g_pKZUtils->InitPlayerMovementTraceFilter(filter, this->player->GetPawn(), this->player->GetPawn()->m_Collision().m_collisionAttribute().m_nInteractsWith(), COLLISION_GROUP_PLAYER_MOVEMENT);
+	g_pKZUtils->InitPlayerMovementTraceFilter(filter, this->player->GetPawn(),
+											  this->player->GetPawn()->m_Collision().m_collisionAttribute().m_nInteractsWith(),
+											  COLLISION_GROUP_PLAYER_MOVEMENT);
 
 	trace_t_s2 trace;
 	g_pKZUtils->InitGameTrace(&trace);
