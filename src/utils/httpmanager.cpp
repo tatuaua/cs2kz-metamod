@@ -1,10 +1,13 @@
 #include "httpmanager.h"
 #include "../../hl2sdk-cs2/public/steam/steam_api_common.h"
 #include "../../hl2sdk-cs2/public/steam/isteamhttp.h"
+#include "../../vendor/nlohmann/json.hpp"
 
-extern ISteamHTTP *g_http;
+ISteamHTTP *g_http = nullptr;
 
 HTTPManager g_HTTPManager;
+
+#undef strdup
 
 HTTPManager::TrackedRequest::TrackedRequest(HTTPRequestHandle hndl, SteamAPICall_t hCall, std::string strUrl, std::string strText,
 											CompletedCallback callback)
@@ -34,27 +37,20 @@ HTTPManager::TrackedRequest::~TrackedRequest()
 
 void HTTPManager::TrackedRequest::OnHTTPRequestCompleted(HTTPRequestCompleted_t *arg, bool bFailed)
 {
-	META_CONPRINTF("HTTP_TEST: HTTP request to %s completed.\n", m_strUrl.c_str());
-	if (bFailed || arg->m_eStatusCode < 200 || arg->m_eStatusCode > 299)
-	{
-		META_CONPRINTF("HTTP_TEST: HTTP request to %s failed with status code %i\n", m_strUrl.c_str(), arg->m_eStatusCode);
-	}
-	else
-	{
-		uint32 size;
-		g_http->GetHTTPResponseBodySize(arg->m_hRequest, &size);
+	uint32 size;
+	g_http->GetHTTPResponseBodySize(arg->m_hRequest, &size);
 
-		uint8 *response = new uint8[size + 1];
-		g_http->GetHTTPResponseBodyData(arg->m_hRequest, response, size);
-		response[size] = 0; // Add null terminator
+	uint8 *response = new uint8[size + 1];
+	g_http->GetHTTPResponseBodyData(arg->m_hRequest, response, size);
+	response[size] = 0; // Add null terminator
 
-		META_CONPRINTF("HTTP_TEST: HTTP request to %s succeeded.\n", m_strUrl.c_str());
+	json jsonResponse;
 
-		// Pass on response to the custom callback
-		m_callback(arg->m_hRequest, std::string((char *)response));
+	// Pass on response to the custom callback
+	jsonResponse = json::parse((char *)response, nullptr, false);
+	m_callback(arg->m_hRequest, arg->m_eStatusCode, jsonResponse);
 
-		delete[] response;
-	}
+	delete[] response;
 
 	if (g_http)
 	{
@@ -66,13 +62,11 @@ void HTTPManager::TrackedRequest::OnHTTPRequestCompleted(HTTPRequestCompleted_t 
 
 void HTTPManager::GET(const char *pszUrl, CompletedCallback callback, std::vector<HTTPHeader> *headers)
 {
-	META_CONPRINTF("HTTP_TEST: Sending GET request to %s\n", pszUrl);
 	GenerateRequest(k_EHTTPMethodGET, pszUrl, "", callback, headers);
 }
 
 void HTTPManager::POST(const char *pszUrl, const char *pszText, CompletedCallback callback, std::vector<HTTPHeader> *headers)
 {
-	META_CONPRINTF("HTTP_TEST: Sending POST request to %s\n", pszUrl);
 	GenerateRequest(k_EHTTPMethodPOST, pszUrl, pszText, callback, headers);
 }
 

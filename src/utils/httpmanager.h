@@ -1,10 +1,16 @@
 #include "../cs2kz.h"
+#undef snprintf
+#include "../../vendor/nlohmann/json_fwd.hpp"
 #include <steam/steam_gameserver.h>
+
+#pragma once
+
+using json = nlohmann::json;
 
 class HTTPManager;
 extern HTTPManager g_HTTPManager;
 
-#define CompletedCallback std::function<void(HTTPRequestHandle, std::string)>
+#define CompletedCallback std::function<void(HTTPRequestHandle, int, json)>
 
 class HTTPHeader
 {

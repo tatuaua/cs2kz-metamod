@@ -14,14 +14,8 @@
 #include "timer/kz_timer.h"
 #include "option/kz_option.h"
 
-#include "utils/httpmanager.h"
-#include "steam/steam_api_common.h"
-#include "steam/isteamhttp.h"
-
 #include "tier0/memdbgon.h"
 
-ISteamHTTP *g_http = nullptr;
-CSteamGameServerAPIContext g_steamAPI;
 
 void KZPlayer::Init()
 {
@@ -51,12 +45,6 @@ void KZPlayer::Init()
 	KZ::style::InitStyleService(this);
 }
 
-void HttpCallback(HTTPRequestHandle request, std::string response)
-{
-	META_CONPRINTF("\n%s", "HTTP_TEST callback");
-	META_CONPRINTF("\nhttp response: %s", response.c_str());
-}
-
 void KZPlayer::Reset()
 {
 	MovementPlayer::Reset();
@@ -76,11 +64,6 @@ void KZPlayer::Reset()
 
 	g_pKZModeManager->SwitchToMode(this, KZOptionService::GetOptionStr("defaultMode", KZ_DEFAULT_MODE), true);
 	g_pKZStyleManager->SwitchToStyle(this, KZOptionService::GetOptionStr("defaultStyle", KZ_DEFAULT_STYLE), true);
-
-	g_steamAPI.Init();
-	g_http = g_steamAPI.SteamHTTP();
-
-	g_HTTPManager.POST("https://httpbin.org/post", "Some data", &HttpCallback);
 }
 
 META_RES KZPlayer::GetPlayerMaxSpeed(f32 &maxSpeed)
