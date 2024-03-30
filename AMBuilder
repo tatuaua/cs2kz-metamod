@@ -79,6 +79,7 @@ for sdk_target in MMSPlugin.sdk_targets:
     os.path.join(builder.sourcePath, 'src', 'utils', 'utils_interface.cpp'),
     os.path.join(builder.sourcePath, 'src', 'utils', 'utils_print.cpp'),
     os.path.join(builder.sourcePath, 'src', 'utils', 'gameconfig.cpp'),
+    os.path.join(builder.sourcePath, 'src', 'utils', 'gamesystem.cpp'),
     os.path.join(builder.sourcePath, 'src', 'utils', 'hooks.cpp'),
     os.path.join(builder.sourcePath, 'src', 'utils', 'detours.cpp'),
     os.path.join(builder.sourcePath, 'src', 'utils', 'schema.cpp'),
@@ -143,6 +144,9 @@ for sdk_target in MMSPlugin.sdk_targets:
     mode_binary.compiler.postlink += [
       os.path.join(sdk['path'], 'lib', 'public', 'win64', 'mathlib.lib'),
     ]
+    mode_binary.sources += [
+      'src/utils/plat_win.cpp'
+      ]
 
   mode_binary.sources += [
     os.path.join(sdk['path'], 'entity2', 'entityidentity.cpp'),
@@ -176,6 +180,9 @@ for sdk_target in MMSPlugin.sdk_targets:
     style_binary.compiler.postlink += [
       os.path.join(sdk['path'], 'lib', 'public', 'win64', 'mathlib.lib'),
     ]
+    style_binary.sources += [
+      'src/utils/plat_win.cpp'
+      ]
 
   style_binary.sources += [
     os.path.join(sdk['path'], 'entity2', 'entityidentity.cpp'),
