@@ -8,7 +8,7 @@
 #undef snprintf
 #include "vendor/nlohmann/json.hpp"
 
-using json = nlohmann::json;
+using JSON = nlohmann::json;
 
 class KZGlobalService : public KZBaseService
 {
@@ -19,5 +19,5 @@ public:
 	
 private:
 	static f64 Heartbeat();
-	static void HeartbeatCallback(HTTPRequestHandle request, int statusCode, json response);
+	static void HeartbeatCallback(HTTPRequestHandle request, int statusCode, JSON response);
 };

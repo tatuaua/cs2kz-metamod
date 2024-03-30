@@ -1,3 +1,7 @@
+/*
+ * Credit to CS2Fixes: https://github.com/Source2ZE/CS2Fixes/blob/40a7f3d9f479aeb8f1d0a5acb61d615c07176e43/src/httpmanager.cpp
+ */
+
 #include "httpmanager.h"
 #include "../../hl2sdk-cs2/public/steam/steam_api_common.h"
 #include "../../hl2sdk-cs2/public/steam/isteamhttp.h"
@@ -44,10 +48,10 @@ void HTTPManager::TrackedRequest::OnHTTPRequestCompleted(HTTPRequestCompleted_t 
 	g_http->GetHTTPResponseBodyData(arg->m_hRequest, response, size);
 	response[size] = 0; // Add null terminator
 
-	json jsonResponse;
+	JSON jsonResponse;
 
 	// Pass on response to the custom callback
-	jsonResponse = json::parse((char *)response, nullptr, false);
+	jsonResponse = JSON::parse((char *)response, nullptr, false);
 	m_callback(arg->m_hRequest, arg->m_eStatusCode, jsonResponse);
 
 	delete[] response;

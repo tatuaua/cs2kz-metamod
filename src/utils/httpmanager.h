@@ -1,3 +1,7 @@
+/*
+ * Credit to CS2Fixes: https://github.com/Source2ZE/CS2Fixes/blob/40a7f3d9f479aeb8f1d0a5acb61d615c07176e43/src/httpmanager.h
+ */
+
 #include "../cs2kz.h"
 #undef snprintf
 #include "../../vendor/nlohmann/json_fwd.hpp"
@@ -5,12 +9,12 @@
 
 #pragma once
 
-using json = nlohmann::json;
+using JSON = nlohmann::json;
 
 class HTTPManager;
 extern HTTPManager g_HTTPManager;
 
-#define CompletedCallback std::function<void(HTTPRequestHandle, int, json)>
+#define CompletedCallback std::function<void(HTTPRequestHandle, int, JSON)>
 
 class HTTPHeader
 {

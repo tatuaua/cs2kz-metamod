@@ -11,11 +11,11 @@ f64 KZGlobalService::Heartbeat()
 		g_steamAPI.Init();
 		g_http = g_steamAPI.SteamHTTP();
 	}
-	g_HTTPManager.GET("https://staging.cs2.kz/ad", &HeartbeatCallback);
+	g_HTTPManager.GET("https://staging.cs2.kz/", &HeartbeatCallback);
 	return 5.0f;
 }
 
-void KZGlobalService::HeartbeatCallback(HTTPRequestHandle request, int statusCode, json response)
+void KZGlobalService::HeartbeatCallback(HTTPRequestHandle request, int statusCode, JSON response)
 {
 	if (statusCode < 200 || statusCode > 299)
 	{
