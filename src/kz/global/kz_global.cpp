@@ -25,5 +25,5 @@ void KZGlobalService::HeartbeatCallback(HTTPRequestHandle request, int statusCod
 
 void KZGlobalService::Init()
 {
-	StartTimer(Heartbeat, true);
+	StartTimer(Heartbeat, true, false);
 }

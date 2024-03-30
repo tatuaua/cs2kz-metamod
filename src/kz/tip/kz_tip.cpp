@@ -127,7 +127,7 @@ void KZTipService::InitTips()
 	scmd::RegisterCmd("kz_tips", Command_KzToggleTips, "Toggle tips.");
 	LoadTips();
 	ShuffleTips();
-	tipTimer = StartTimer(PrintTips, true);
+	tipTimer = StartTimer(PrintTips, true, false);
 }
 
 f64 KZTipService::PrintTips()
