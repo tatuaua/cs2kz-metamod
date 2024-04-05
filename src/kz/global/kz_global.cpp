@@ -8,9 +8,9 @@ extern ISteamHTTP *g_http;
 #define KZ_API_BASE_URL "https://staging.cs2.kz/"
 
 internal const char *refreshKey;
-internal const char *JWT;
-internal bool authenticated;
-internal bool APIStatus;
+internal const char *JWT = "";
+internal bool authenticated = false;
+internal bool APIStatus = false;
 
 f64 KZGlobalService::Heartbeat()
 {
@@ -39,11 +39,11 @@ f64 KZGlobalService::RefreshJWT()
 	requestBody["refresh_key"] = refreshKey;
 	requestBody["plugin_version"] = "1.2.3"; //g_KZPlugin.GetVersion()
 
-	f64 refreshInterval = 900.0f;
-	if (!JWT)
+	f64 refreshInterval = 10.0f;
+	if (V_stricmp(JWT, "") == 0)
 	{
-		// Do the first request a minute ahead
-		refreshInterval = 840.0f;
+		// Do the first request earlier
+		refreshInterval = 1.0f;
 	}
 
 	g_HTTPManager.POST(url, requestBody.dump().c_str(), &RefreshJWTCallback);
@@ -78,4 +78,12 @@ void KZGlobalService::Init()
 	refreshKey = KZOptionService::GetOptionStr("refreshKey");
 	authenticated = false;
 	StartTimer(RefreshJWT, true, false);
+}
+
+HTTPHeader KZGlobalService::GetJWTHeader()
+{
+	char value[2048];
+	V_snprintf(value, sizeof(value), "%s%s", "Bearer ", JWT);
+	HTTPHeader header("Authorization", value);
+	return header;
 }

@@ -18,4 +18,5 @@ private:
 	static void HeartbeatCallback(HTTPRequestHandle request, int statusCode, std::string response, bool requestSuccessful);
 	static f64 RefreshJWT();
 	static void RefreshJWTCallback(HTTPRequestHandle request, int statusCode, std::string response, bool requestSuccessful);
+	static HTTPHeader GetJWTHeader();
 };
