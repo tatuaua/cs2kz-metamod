@@ -72,6 +72,21 @@ void KZGlobalService::RefreshJWTCallback(HTTPRequestHandle request, int statusCo
 	}
 }
 
+void KZGlobalService::SendPlayerInfo(KZPlayer* player, const char *someInfo) 
+{
+	std::vector<HTTPHeader> headers;
+
+	headers.push_back(GetJWTHeader());
+
+	g_HTTPManager.POST("https://staging.cs2.kz/players/STEAM_1%3A1%3A161178172/preferences", someInfo, &SendPlayerInfoCallback, &headers, player);
+}
+
+void KZGlobalService::SendPlayerInfoCallback(HTTPRequestHandle request, int statusCode, std::string response, bool requestSuccessful,
+											 KZPlayer *player)
+{
+	META_CONPRINTF("\nplayer callback: %s", player->GetController()->m_iszPlayerName());
+}
+
 void KZGlobalService::Init()
 {
 	StartTimer(Heartbeat, true, false);

@@ -12,6 +12,7 @@ class KZGlobalService : public KZBaseService
 
 public:
 	static_global void Init();
+	static_global void SendPlayerInfo(KZPlayer *player, const char *someInfo);
 
 private:
 	static f64 Heartbeat();
@@ -19,4 +20,6 @@ private:
 	static f64 RefreshJWT();
 	static void RefreshJWTCallback(HTTPRequestHandle request, int statusCode, std::string response, bool requestSuccessful);
 	static HTTPHeader GetJWTHeader();
+	static void SendPlayerInfoCallback(HTTPRequestHandle request, int statusCode, std::string response, bool requestSuccessful,
+											  KZPlayer *player);
 };
