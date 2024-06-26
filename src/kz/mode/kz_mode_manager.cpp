@@ -7,7 +7,9 @@
 #include "interfaces/interfaces.h"
 
 #include "../timer/kz_timer.h"
+#include "../language/kz_language.h"
 #include "utils/simplecmds.h"
+#include "utils/plat.h"
 
 internal SCMD_CALLBACK(Command_KzModeShort);
 internal SCMD_CALLBACK(Command_KzMode);
@@ -47,7 +49,7 @@ void KZ::mode::InitModeManager()
 void KZ::mode::LoadModePlugins()
 {
 	char buffer[1024];
-	g_SMAPI->PathFormat(buffer, sizeof(buffer), "addons/cs2kz/modes/*.*");
+	g_SMAPI->PathFormat(buffer, sizeof(buffer), "addons/cs2kz/modes/*%s", MODULE_EXT);
 	FileFindHandle_t findHandle = {};
 	const char *output = g_pFullFileSystem->FindFirstEx(buffer, "GAME", &findHandle);
 	if (output)
@@ -146,11 +148,9 @@ bool KZModeManager::RegisterMode(PluginId id, const char *shortModeName, const c
 	}
 
 	char shortModeCmd[64];
-	char shortModeCmdDesc[256];
 
 	V_snprintf(shortModeCmd, 64, "kz_%s", shortModeName);
-	V_snprintf(shortModeCmdDesc, 64, "Switch to %s mode.", longModeName);
-	bool shortCmdRegistered = scmd::RegisterCmd(V_strlower(shortModeCmd), Command_KzModeShort, shortModeCmdDesc);
+	bool shortCmdRegistered = scmd::RegisterCmd(V_strlower(shortModeCmd), Command_KzModeShort);
 	this->modeInfos.AddToTail({id, shortModeName, longModeName, factory, shortCmdRegistered});
 	return true;
 }
@@ -190,33 +190,13 @@ void KZModeManager::UnregisterMode(const char *modeName)
 	}
 }
 
-void KZModeManager::LoadDefaultMode()
-{
-	char modeCfgPath[1024];
-	V_snprintf(modeCfgPath, sizeof(modeCfgPath), "%s%s", g_SMAPI->GetBaseDir(), "/addons/cs2kz/modes/mode-config.txt");
-
-	KeyValues *modeCfgKeyValues = new KeyValues("ModeConfig");
-	modeCfgKeyValues->LoadFromFile(g_pFullFileSystem, modeCfgPath, nullptr);
-
-	const char *modeName = modeCfgKeyValues->GetString("defaultMode");
-
-	FOR_EACH_VEC(this->modeInfos, i)
-	{
-		if (V_stricmp(this->modeInfos[i].shortModeName, modeName) == 0 || V_stricmp(this->modeInfos[i].longModeName, modeName) == 0)
-		{
-			defaultMode = modeName;
-			break;
-		}
-	}
-}
-
-bool KZModeManager::SwitchToMode(KZPlayer *player, const char *modeName, bool silent)
+bool KZModeManager::SwitchToMode(KZPlayer *player, const char *modeName, bool silent, bool force)
 {
 	// Don't change mode if it doesn't exist. Instead, print a list of modes to the client.
 	if (!modeName || !V_stricmp("", modeName))
 	{
-		player->PrintChat(true, false, "{grey}Usage: {default}kz_mode <mode>.{grey} Check console for possible modes!");
-		player->PrintConsole(false, false, "Possible modes: (Current mode is %s)", player->modeService->GetModeName());
+		player->languageService->PrintChat(true, false, "Mode Command Usage");
+		player->languageService->PrintConsole(false, false, "Possible & Current Modes", player->modeService->GetModeName());
 		FOR_EACH_VEC(this->modeInfos, i)
 		{
 			// clang-format off
@@ -231,8 +211,8 @@ bool KZModeManager::SwitchToMode(KZPlayer *player, const char *modeName, bool si
 		return false;
 	}
 
-	// If it's the same mode, do nothing.
-	if (V_stricmp(player->modeService->GetModeName(), modeName) == 0 || V_stricmp(player->modeService->GetModeShortName(), modeName) == 0)
+	// If it's the same style, do nothing, unless it's forced.
+	if (!force && (V_stricmp(player->modeService->GetModeName(), modeName) == 0 || V_stricmp(player->modeService->GetModeShortName(), modeName) == 0))
 	{
 		return false;
 	}
@@ -251,7 +231,7 @@ bool KZModeManager::SwitchToMode(KZPlayer *player, const char *modeName, bool si
 	{
 		if (!silent)
 		{
-			player->PrintChat(true, false, "{grey}The{purple} %s{grey}mode is not available.", modeName);
+			player->languageService->PrintChat(true, false, "Mode Not Available", modeName);
 		}
 		return false;
 	}
@@ -263,7 +243,7 @@ bool KZModeManager::SwitchToMode(KZPlayer *player, const char *modeName, bool si
 
 	if (!silent)
 	{
-		player->PrintChat(true, false, "{grey}You have switched to the {purple}%s {grey}mode.", player->modeService->GetModeName());
+		player->languageService->PrintChat(true, false, "Switched Mode", player->modeService->GetModeName());
 	}
 
 	utils::SendMultipleConVarValues(player->GetPlayerSlot(), KZ::mode::modeCvars, player->modeService->GetModeConVarValues(), KZ::mode::numCvar);
@@ -323,5 +303,5 @@ internal SCMD_CALLBACK(Command_KzModeShort)
 
 void KZ::mode::RegisterCommands()
 {
-	scmd::RegisterCmd("kz_mode", Command_KzMode, "List or change mode.");
+	scmd::RegisterCmd("kz_mode", Command_KzMode);
 }

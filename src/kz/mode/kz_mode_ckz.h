@@ -6,10 +6,11 @@
 #define MODE_NAME_SHORT "CKZ"
 #define MODE_NAME       "Classic"
 // Rampbug fix related
-#define MAX_BUMPS            4
-#define RAMP_PIERCE_DISTANCE 1.25f
-#define RAMP_BUG_THRESHOLD   0.99f
-#define NEW_RAMP_THRESHOLD   0.95f
+#define MAX_BUMPS                   4
+#define RAMP_PIERCE_DISTANCE        0.1f
+#define RAMP_BUG_THRESHOLD          0.99f
+#define RAMP_BUG_VELOCITY_THRESHOLD 0.95f
+#define NEW_RAMP_THRESHOLD          0.95f
 
 #define SPEED_NORMAL 250.0f
 // Prestrafe related
@@ -58,12 +59,12 @@ class KZClassicModeService : public KZModeService
 
 	f32 distanceTiers[JUMPTYPE_COUNT - 3][DISTANCETIER_COUNT] = {
 		{217.0f, 265.0f, 270.0f, 275.0f, 280.0f, 285.0f}, // LJ
-		{217.0f, 270.0f, 275.0f, 280.0f, 285.0f, 290.0f}, // BH
-		{217.0f, 270.0f, 275.0f, 280.0f, 285.0f, 290.0f}, // MBH
-		{217.0f, 270.0f, 275.0f, 280.0f, 285.0f, 290.0f}, // WJ
+		{217.0f, 275.0f, 280.0f, 285.0f, 290.0f, 295.0f}, // BH
+		{217.0f, 275.0f, 280.0f, 285.0f, 290.0f, 295.0f}, // MBH
+		{217.0f, 275.0f, 280.0f, 285.0f, 290.0f, 295.0f}, // WJ
 		{120.0f, 180.0f, 185.0f, 190.0f, 195.0f, 200.0f}, // LAJ
 		{217.0f, 260.0f, 265.0f, 270.0f, 275.0f, 280.0f}, // LAH
-		{217.0f, 270.0f, 275.0f, 280.0f, 285.0f, 290.0f}, // JB
+		{217.0f, 275.0f, 280.0f, 285.0f, 290.0f, 295.0f}, // JB
 	};
 
 	const char *modeCvarValues[KZ::mode::numCvar] = {
@@ -102,6 +103,7 @@ class KZClassicModeService : public KZModeService
 	QAngle lastValidDesiredViewAngle;
 	f32 lastJumpReleaseTime {};
 	bool oldDuckPressed {};
+	bool oldJumpPressed {};
 	bool forcedUnduck {};
 	f32 postProcessMovementZSpeed {};
 
@@ -133,10 +135,7 @@ public:
 	virtual const char *GetModeName() override;
 	virtual const char *GetModeShortName() override;
 
-	virtual bool EnableWaterFix() override
-	{
-		return true;
-	}
+	virtual bool EnableWaterFix() override;
 
 	virtual DistanceTier GetDistanceTier(JumpType jumpType, f32 distance) override;
 	virtual const char **GetModeConVarValues() override;
@@ -155,8 +154,8 @@ public:
 	virtual void OnJumpPost() override;
 	virtual void OnStartTouchGround() override;
 	virtual void OnStopTouchGround() override;
-	virtual void OnTryPlayerMove(Vector *pFirstDest, trace_t_s2 *pFirstTrace) override;
-	virtual void OnTryPlayerMovePost(Vector *pFirstDest, trace_t_s2 *pFirstTrace) override;
+	virtual void OnTryPlayerMove(Vector *pFirstDest, trace_t *pFirstTrace) override;
+	virtual void OnTryPlayerMovePost(Vector *pFirstDest, trace_t *pFirstTrace) override;
 	virtual void OnTeleport(const Vector *newPosition, const QAngle *newAngles, const Vector *newVelocity) override;
 
 	virtual bool OnTriggerStartTouch(CBaseTrigger *trigger) override;

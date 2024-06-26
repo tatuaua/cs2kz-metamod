@@ -1,5 +1,9 @@
 #pragma once
 #include "common.h"
+#include "player/player.h"
+#include "steam/steam_api_common.h"
+#include "steam/steamclientpublic.h"
+#include "steam/isteamuser.h"
 
 class CCSPlayer_MovementServices;
 
@@ -19,7 +23,7 @@ namespace movement
 
 	void FASTCALL Detour_PhysicsSimulate(CCSPlayerController *);
 	f32 FASTCALL Detour_GetMaxSpeed(CCSPlayerPawn *);
-	i32 FASTCALL Detour_ProcessUsercmds(CBasePlayerPawn *, void *, int, bool, float);
+	i32 FASTCALL Detour_ProcessUsercmds(CCSPlayerController *, void *, int, bool, float);
 	void FASTCALL Detour_ProcessMovement(CCSPlayer_MovementServices *, CMoveData *);
 	bool FASTCALL Detour_PlayerMoveNew(CCSPlayer_MovementServices *, CMoveData *);
 	void FASTCALL Detour_CheckParameters(CCSPlayer_MovementServices *, CMoveData *);
@@ -38,7 +42,7 @@ namespace movement
 	void FASTCALL Detour_AirAccelerate(CCSPlayer_MovementServices *, CMoveData *, Vector &, f32, f32);
 	void FASTCALL Detour_Friction(CCSPlayer_MovementServices *, CMoveData *);
 	void FASTCALL Detour_WalkMove(CCSPlayer_MovementServices *, CMoveData *);
-	void FASTCALL Detour_TryPlayerMove(CCSPlayer_MovementServices *, CMoveData *, Vector *, trace_t_s2 *);
+	void FASTCALL Detour_TryPlayerMove(CCSPlayer_MovementServices *, CMoveData *, Vector *, trace_t *);
 	void FASTCALL Detour_CategorizePosition(CCSPlayer_MovementServices *, CMoveData *, bool);
 	void FASTCALL Detour_FinishGravity(CCSPlayer_MovementServices *, CMoveData *);
 	void FASTCALL Detour_CheckFalling(CCSPlayer_MovementServices *, CMoveData *);
@@ -46,19 +50,12 @@ namespace movement
 	void FASTCALL Detour_PostThink(CCSPlayerPawnBase *);
 } // namespace movement
 
-class MovementPlayer
+class MovementPlayer : public Player
 {
+	using Player::Player;
+
 public:
-	MovementPlayer(int i) : index(i) {}
-
-	virtual CCSPlayerController *GetController();
-	virtual CCSPlayerPawn *GetPawn();
-
-	virtual CPlayerSlot GetPlayerSlot()
-	{
-		return index - 1;
-	}
-
+	virtual void Reset() override;
 	virtual CCSPlayer_MovementServices *GetMoveServices();
 
 	// This doesn't work during movement processing!
@@ -82,7 +79,6 @@ public:
 	virtual void RegisterLanding(const Vector &landingVelocity, bool distbugFix = true);
 	virtual f32 GetGroundPosition();
 
-	virtual void Reset();
 	virtual META_RES GetPlayerMaxSpeed(f32 &maxSpeed);
 
 	// Movement hooks
@@ -165,9 +161,9 @@ public:
 
 	virtual void OnWalkMovePost() {}
 
-	virtual void OnTryPlayerMove(Vector *, trace_t_s2 *) {}
+	virtual void OnTryPlayerMove(Vector *, trace_t *) {}
 
-	virtual void OnTryPlayerMovePost(Vector *, trace_t_s2 *) {}
+	virtual void OnTryPlayerMovePost(Vector *, trace_t *) {}
 
 	virtual void OnCategorizePosition(bool) {}
 
@@ -218,17 +214,20 @@ public:
 
 	bool IsAlive()
 	{
-		return this->GetPawn() ? this->GetPawn()->IsAlive() : false;
+		return this->GetPlayerPawn() ? this->GetPlayerPawn()->IsAlive() : false;
 	}
+
+	void SetMoveType(MoveType_t newMoveType, bool fireCallback = true);
 
 	MoveType_t GetMoveType()
 	{
-		return this->GetPawn() ? this->GetPawn()->m_MoveType() : MOVETYPE_NONE;
+		return this->GetPlayerPawn() ? this->GetPlayerPawn()->m_MoveType() : MOVETYPE_NONE;
 	}
 
-	Collision_Group_t GetCollisionGroup()
+	StandardCollisionGroups_t GetCollisionGroup()
 	{
-		return this->GetPawn() ? (Collision_Group_t)this->GetPawn()->m_Collision().m_CollisionGroup() : LAST_SHARED_COLLISION_GROUP;
+		return this->GetPlayerPawn() ? (StandardCollisionGroups_t)this->GetPlayerPawn()->m_Collision().m_CollisionGroup()
+									 : LAST_SHARED_COLLISION_GROUP;
 	}
 
 	void SetCollidingWithWorld()
@@ -243,8 +242,6 @@ public:
 
 public:
 	// General
-	const i32 index;
-
 	bool processingMovement {};
 	CMoveData *currentMoveData {};
 	CMoveData moveDataPre;
@@ -256,7 +253,7 @@ public:
 	bool duckBugged {};
 	bool walkMoved {};
 	bool oldWalkMoved {};
-	bool hitPerf {};
+	bool inPerf {};
 	bool jumped {};
 	bool takeoffFromLadder {};
 	Vector lastValidLadderOrigin;
@@ -282,10 +279,10 @@ public:
 private:
 	bool collidingWithWorld {};
 	// Movetype changes that occur outside of movement processing
-	MoveType_t lastKnownMoveType;
+	MoveType_t lastKnownMoveType {};
 };
 
-class CMovementPlayerManager
+class CMovementPlayerManager : public PlayerManager
 {
 public:
 	CMovementPlayerManager()
@@ -297,24 +294,17 @@ public:
 		}
 	}
 
-	~CMovementPlayerManager()
-	{
-		for (int i = 0; i < MAXPLAYERS + 1; i++)
-		{
-			delete players[i];
-		}
-	}
-
 public:
-	MovementPlayer *ToPlayer(CCSPlayer_MovementServices *ms);
+	MovementPlayer *ToPlayer(CPlayerPawnComponent *component);
 	MovementPlayer *ToPlayer(CBasePlayerController *controller);
 	MovementPlayer *ToPlayer(CBasePlayerPawn *pawn);
 	MovementPlayer *ToPlayer(CPlayerSlot slot);
 	MovementPlayer *ToPlayer(CEntityIndex entIndex);
 	MovementPlayer *ToPlayer(CPlayerUserId userID);
+	MovementPlayer *ToPlayer(u32 index);
 
-public:
-	MovementPlayer *players[MAXPLAYERS + 1];
+	MovementPlayer *ToMovementPlayer(Player *player)
+	{
+		return static_cast<MovementPlayer *>(player);
+	}
 };
-
-extern CMovementPlayerManager *g_pPlayerManager;

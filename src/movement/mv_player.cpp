@@ -6,7 +6,6 @@
 void MovementPlayer::OnProcessMovement()
 {
 	this->duckBugged = false;
-	this->hitPerf = false;
 	this->processingMovement = true;
 	this->walkMoved = false;
 	this->takeoffFromLadder = false;
@@ -15,6 +14,11 @@ void MovementPlayer::OnProcessMovement()
 
 void MovementPlayer::OnProcessMovementPost()
 {
+	// On ground or a ladder, definitely not in a perf.
+	if (this->GetPlayerPawn()->m_fFlags() & FL_ONGROUND || this->GetMoveType() != MOVETYPE_WALK)
+	{
+		this->inPerf = false;
+	}
 	this->processingMovement = false;
 	if (g_pKZUtils->GetGlobals()->frametime > 0.0f)
 	{
@@ -23,37 +27,13 @@ void MovementPlayer::OnProcessMovementPost()
 	this->oldWalkMoved = this->walkMoved;
 }
 
-CCSPlayerController *MovementPlayer::GetController()
-{
-	if (!GameEntitySystem())
-	{
-		return nullptr;
-	}
-	CBaseEntity2 *ent = static_cast<CBaseEntity2 *>(GameEntitySystem()->GetBaseEntity(CEntityIndex(this->index)));
-	if (!ent)
-	{
-		return nullptr;
-	}
-	return ent->IsController() ? static_cast<CCSPlayerController *>(ent) : nullptr;
-}
-
-CCSPlayerPawn *MovementPlayer::GetPawn()
-{
-	CCSPlayerController *controller = this->GetController();
-	if (!controller)
-	{
-		return nullptr;
-	}
-	return controller->m_hPlayerPawn().Get();
-}
-
 CCSPlayer_MovementServices *MovementPlayer::GetMoveServices()
 {
-	if (!this->GetPawn())
+	if (!this->GetPlayerPawn())
 	{
 		return nullptr;
 	}
-	return static_cast<CCSPlayer_MovementServices *>(this->GetPawn()->m_pMovementServices());
+	return static_cast<CCSPlayer_MovementServices *>(this->GetPlayerPawn()->m_pMovementServices());
 };
 
 void MovementPlayer::GetOrigin(Vector *origin)
@@ -64,7 +44,7 @@ void MovementPlayer::GetOrigin(Vector *origin)
 	}
 	else
 	{
-		CBasePlayerPawn *pawn = this->GetPawn();
+		CBasePlayerPawn *pawn = this->GetPlayerPawn();
 		if (!pawn)
 		{
 			return;
@@ -75,7 +55,7 @@ void MovementPlayer::GetOrigin(Vector *origin)
 
 void MovementPlayer::Teleport(const Vector *origin, const QAngle *angles, const Vector *velocity)
 {
-	CBasePlayerPawn *pawn = this->GetPawn();
+	CBasePlayerPawn *pawn = this->GetPlayerPawn();
 	if (!pawn)
 	{
 		return;
@@ -93,7 +73,7 @@ void MovementPlayer::SetOrigin(const Vector &origin)
 	}
 	else
 	{
-		CBasePlayerPawn *pawn = this->GetPawn();
+		CBasePlayerPawn *pawn = this->GetPlayerPawn();
 		if (!pawn)
 		{
 			return;
@@ -110,7 +90,7 @@ void MovementPlayer::GetVelocity(Vector *velocity)
 	}
 	else
 	{
-		CBasePlayerPawn *pawn = this->GetPawn();
+		CBasePlayerPawn *pawn = this->GetPlayerPawn();
 		if (!pawn)
 		{
 			return;
@@ -127,7 +107,7 @@ void MovementPlayer::SetVelocity(const Vector &velocity)
 	}
 	else
 	{
-		CBasePlayerPawn *pawn = this->GetPawn();
+		CBasePlayerPawn *pawn = this->GetPlayerPawn();
 		if (!pawn)
 		{
 			return;
@@ -150,7 +130,7 @@ void MovementPlayer::GetAngles(QAngle *angles)
 
 void MovementPlayer::SetAngles(const QAngle &angles)
 {
-	CBasePlayerPawn *pawn = this->GetPawn();
+	CBasePlayerPawn *pawn = this->GetPlayerPawn();
 	if (!pawn)
 	{
 		return;
@@ -206,7 +186,8 @@ f32 MovementPlayer::GetGroundPosition()
 	}
 
 	CTraceFilterPlayerMovementCS filter;
-	g_pKZUtils->InitPlayerMovementTraceFilter(filter, this->GetPawn(), this->GetPawn()->m_Collision().m_collisionAttribute().m_nInteractsWith(),
+	g_pKZUtils->InitPlayerMovementTraceFilter(filter, this->GetPlayerPawn(),
+											  this->GetPlayerPawn()->m_Collision().m_collisionAttribute().m_nInteractsWith(),
 											  COLLISION_GROUP_PLAYER_MOVEMENT);
 
 	Vector ground = mv->m_vecAbsOrigin;
@@ -223,18 +204,18 @@ f32 MovementPlayer::GetGroundPosition()
 		bounds.maxs.z = 54.0;
 	}
 
-	trace_t_s2 trace;
+	trace_t trace;
 	g_pKZUtils->InitGameTrace(&trace);
 
 	g_pKZUtils->TracePlayerBBox(mv->m_vecAbsOrigin, ground, bounds, &filter, trace);
 
 	// Doesn't hit anything, fall back to the original ground
-	if (trace.startsolid || trace.fraction == 1.0f)
+	if (trace.m_bStartInSolid || trace.m_flFraction == 1.0f)
 	{
 		return mv->m_vecAbsOrigin.z;
 	}
 
-	return trace.endpos.z;
+	return trace.m_vEndPos.z;
 }
 
 void MovementPlayer::RegisterTakeoff(bool jumped)
@@ -259,6 +240,7 @@ void MovementPlayer::RegisterLanding(const Vector &landingVelocity, bool distbug
 	{
 		mv = &this->moveDataPost;
 	}
+	this->inPerf = false;
 	this->landingOrigin = mv->m_vecAbsOrigin;
 	this->landingTime = g_pKZUtils->GetGlobals()->curtime;
 	this->landingVelocity = landingVelocity;
@@ -273,12 +255,12 @@ void MovementPlayer::RegisterLanding(const Vector &landingVelocity, bool distbug
 		// The true landing origin from TryPlayerMove, use this whenever you can
 		FOR_EACH_VEC(mv->m_TouchList, i)
 		{
-			if (mv->m_TouchList[i].trace.planeNormal.z > 0.7)
+			if (mv->m_TouchList[i].trace.m_vHitNormal.z > 0.7)
 			{
-				this->landingOriginActual = mv->m_TouchList[i].trace.endpos;
+				this->landingOriginActual = mv->m_TouchList[i].trace.m_vEndPos;
 				this->landingTimeActual =
 					this->landingTime
-					- (1 - mv->m_TouchList[i].trace.fraction) * g_pKZUtils->GetGlobals()->frametime; // TODO: make sure this is right
+					- (1 - mv->m_TouchList[i].trace.m_flFraction) * g_pKZUtils->GetGlobals()->frametime; // TODO: make sure this is right
 				return;
 			}
 		}
@@ -305,13 +287,27 @@ void MovementPlayer::RegisterLanding(const Vector &landingVelocity, bool distbug
 
 void MovementPlayer::OnPostThink() {}
 
+void MovementPlayer::SetMoveType(MoveType_t newMoveType, bool fireCallback)
+{
+	MoveType_t oldMoveType = this->GetMoveType();
+	if (oldMoveType != newMoveType)
+	{
+		this->GetPlayerPawn()->SetMoveType(newMoveType);
+		if (fireCallback)
+		{
+			this->OnChangeMoveType(oldMoveType);
+		}
+	}
+}
+
 void MovementPlayer::Reset()
 {
+	Player::Reset();
 	this->processingDuck = false;
 	this->duckBugged = false;
 	this->walkMoved = false;
 	this->oldWalkMoved = false;
-	this->hitPerf = false;
+	this->inPerf = false;
 	this->jumped = false;
 	this->takeoffFromLadder = false;
 	this->lastValidLadderOrigin.Init();

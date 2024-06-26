@@ -19,8 +19,14 @@ void KZ::quiet::OnCheckTransmit(CCheckTransmitInfo **pInfo, int infoCount)
 		uintptr_t targetAddr = reinterpret_cast<uintptr_t>(pTransmitInfo) + g_pGameConfig->GetOffset("QuietPlayerSlot");
 		CPlayerSlot targetSlot = CPlayerSlot(*reinterpret_cast<int *>(targetAddr));
 		KZPlayer *targetPlayer = g_pKZPlayerManager->ToPlayer(targetSlot);
+		// Make sure the target isn't CSTV.
+		CCSPlayerController *targetController = targetPlayer->GetController();
+		if (!targetController || targetController->m_bIsHLTV)
+		{
+			continue;
+		}
 		targetPlayer->quietService->UpdateHideState();
-		CCSPlayerPawn *targetPlayerPawn = targetPlayer->GetPawn();
+		CCSPlayerPawn *targetPlayerPawn = targetPlayer->GetPlayerPawn();
 
 		EntityInstanceByClassIter_t iter(NULL, "player");
 		// clang-format off
@@ -56,12 +62,15 @@ void KZ::quiet::OnCheckTransmit(CCheckTransmitInfo **pInfo, int infoCount)
 				pTransmitInfo->m_pTransmitEdict->Clear(pawn->entindex());
 				continue;
 			}
+			// Respawn must be enabled or !hide will cause client crash.
+#if 0
 			// Never send dead players to prevent crashes.
 			if (pawn->m_lifeState() != LIFE_ALIVE)
 			{
 				pTransmitInfo->m_pTransmitEdict->Clear(pawn->entindex());
 				continue;
 			}
+#endif
 			// Finally check if player is using !hide.
 			if (!targetPlayer->quietService->ShouldHide())
 			{
@@ -76,7 +85,7 @@ void KZ::quiet::OnCheckTransmit(CCheckTransmitInfo **pInfo, int infoCount)
 	}
 }
 
-void KZ::quiet::OnPostEvent(INetworkSerializable *pEvent, const void *pData, const uint64 *clients)
+void KZ::quiet::OnPostEvent(INetworkMessageInternal *pEvent, const CNetMessage *pData, const uint64 *clients)
 {
 	NetMessageInfo_t *info = pEvent->GetNetMessageInfo();
 	u32 entIndex, playerIndex;
@@ -86,21 +95,21 @@ void KZ::quiet::OnPostEvent(INetworkSerializable *pEvent, const void *pData, con
 		// Hide bullet decals, and sound.
 		case GE_FireBulletsId:
 		{
-			CMsgTEFireBullets *msg = (CMsgTEFireBullets *)pData;
+			auto msg = const_cast<CNetMessage *>(pData)->ToPB<CMsgTEFireBullets>();
 			entIndex = msg->player() & 0x3FFF;
 			break;
 		}
 		// Hide reload sounds.
 		case CS_UM_WeaponSound:
 		{
-			CCSUsrMsg_WeaponSound *msg = (CCSUsrMsg_WeaponSound *)pData;
+			auto msg = const_cast<CNetMessage *>(pData)->ToPB<CCSUsrMsg_WeaponSound>();
 			entIndex = msg->entidx();
 			break;
 		}
 		// Hide other sounds from player (eg. armor equipping)
 		case GE_SosStartSoundEvent:
 		{
-			CMsgSosStartSoundEvent *msg = (CMsgSosStartSoundEvent *)pData;
+			auto msg = const_cast<CNetMessage *>(pData)->ToPB<CMsgSosStartSoundEvent>();
 			entIndex = msg->source_entity_index();
 			break;
 		}
@@ -109,7 +118,7 @@ void KZ::quiet::OnPostEvent(INetworkSerializable *pEvent, const void *pData, con
 			return;
 		}
 	}
-	CBaseEntity2 *ent = static_cast<CBaseEntity2 *>(GameEntitySystem()->GetBaseEntity(CEntityIndex(entIndex)));
+	CBaseEntity *ent = static_cast<CBaseEntity *>(GameEntitySystem()->GetEntityInstance(CEntityIndex(entIndex)));
 	if (!ent)
 	{
 		return;
@@ -125,7 +134,7 @@ void KZ::quiet::OnPostEvent(INetworkSerializable *pEvent, const void *pData, con
 			if (g_pKZPlayerManager->ToPlayer(i)->quietService->ShouldHide()
 				&& g_pKZPlayerManager->ToPlayer(i)->quietService->ShouldHideIndex(playerIndex))
 			{
-				*(uint64 *)clients &= ~i;
+				*(uint64 *)clients &= ~(i + 1);
 			}
 		}
 	}
@@ -136,7 +145,7 @@ void KZ::quiet::OnPostEvent(INetworkSerializable *pEvent, const void *pData, con
 		{
 			if (g_pKZPlayerManager->ToPlayer(i)->quietService->ShouldHide())
 			{
-				*(uint64 *)clients &= ~i;
+				*(uint64 *)clients &= ~(i + 1);
 			}
 		}
 	}
@@ -150,8 +159,10 @@ void KZQuietService::Reset()
 
 void KZQuietService::SendFullUpdate()
 {
-	auto slots = *(void ***)((char *)g_pNetworkServerService->GetIGameServer() + g_pGameConfig->GetOffset("ClientOffset"));
-	*(uint32_t *)((char *)slots[this->player->GetPlayerSlot().Get()] + g_pGameConfig->GetOffset("ACKOffset")) = -1;
+	if (CServerSideClient *client = g_pKZUtils->GetClientBySlot(this->player->GetPlayerSlot()))
+	{
+		client->ForceFullUpdate();
+	}
 }
 
 bool KZQuietService::ShouldHide()
@@ -184,6 +195,14 @@ bool KZQuietService::ShouldHideIndex(u32 targetIndex)
 void KZQuietService::ToggleHide()
 {
 	this->hideOtherPlayers = !this->hideOtherPlayers;
+	if (!this->hideOtherPlayers)
+	{
+		this->SendFullUpdate();
+		// Keep the player's angles the same.
+		QAngle angles;
+		this->player->GetAngles(&angles);
+		this->player->SetAngles(angles);
+	}
 }
 
 void KZQuietService::UpdateHideState()

@@ -1,6 +1,8 @@
 #include "../kz.h"
 #include "kz_checkpoint.h"
 #include "../timer/kz_timer.h"
+#include "../noclip/kz_noclip.h"
+#include "../language/kz_language.h"
 #include "utils/utils.h"
 
 // TODO: replace printchat with HUD service's printchat
@@ -15,6 +17,7 @@ void KZCheckpointService::Reset()
 
 void KZCheckpointService::ResetCheckpoints()
 {
+	this->undoTeleportData = {};
 	this->currentCpIndex = 0;
 	this->tpCount = 0;
 	this->holdingStill = false;
@@ -24,7 +27,7 @@ void KZCheckpointService::ResetCheckpoints()
 
 void KZCheckpointService::SetCheckpoint()
 {
-	CCSPlayerPawn *pawn = this->player->GetPawn();
+	CCSPlayerPawn *pawn = this->player->GetPlayerPawn();
 	if (!pawn)
 	{
 		return;
@@ -32,7 +35,7 @@ void KZCheckpointService::SetCheckpoint()
 	u32 flags = pawn->m_fFlags();
 	if (!(flags & FL_ONGROUND) && !(pawn->m_MoveType() == MOVETYPE_LADDER))
 	{
-		this->player->PrintChat(true, false, "{grey}Checkpoint unavailable in the air.");
+		this->player->languageService->PrintChat(true, false, "Can't Checkpoint (Midair)");
 		return;
 	}
 
@@ -50,31 +53,76 @@ void KZCheckpointService::SetCheckpoint()
 	this->checkpoints.AddToTail(cp);
 	// newest checkpoints aren't deleted after using prev cp.
 	this->currentCpIndex = this->checkpoints.Count() - 1;
-	this->player->PrintChat(true, false, "{grey}Checkpoint ({default}#%i{grey})", this->GetCheckpointCount());
+	this->player->languageService->PrintChat(true, false, "Make Checkpoint", this->GetCheckpointCount());
 	this->PlayCheckpointSound();
+}
+
+void KZCheckpointService::UndoTeleport()
+{
+	CCSPlayerPawn *pawn = this->player->GetPlayerPawn();
+	if (!pawn || !pawn->IsAlive())
+	{
+		return;
+	}
+
+	if (this->checkpoints.Count() <= 0 || this->undoTeleportData.origin.IsZero() || this->tpCount <= 0)
+	{
+		this->player->languageService->PrintChat(true, false, "Can't Undo (No Teleports)");
+		return;
+	}
+	if (!this->undoTeleportData.teleportOnGround)
+	{
+		this->player->languageService->PrintChat(true, false, "Can't Undo (TP Was Midair)");
+		return;
+	}
+	if (this->undoTeleportData.teleportInAntiCpTrigger)
+	{
+		this->player->languageService->PrintChat(true, false, "Can't Undo (AntiCp)");
+		return;
+	}
+
+	this->DoTeleport(this->undoTeleportData);
 }
 
 void KZCheckpointService::DoTeleport(i32 index)
 {
 	if (this->checkpoints.Count() <= 0)
 	{
-		this->player->PrintChat(true, false, "{grey}No checkpoints available.");
+		this->player->languageService->PrintChat(true, false, "Can't Teleport (No Checkpoints)");
 		return;
 	}
 	this->DoTeleport(this->checkpoints[this->currentCpIndex]);
 }
 
-void KZCheckpointService::DoTeleport(const Checkpoint &cp)
+void KZCheckpointService::DoTeleport(const Checkpoint cp)
 {
-	CCSPlayerPawn *pawn = this->player->GetPawn();
+	CCSPlayerPawn *pawn = this->player->GetPlayerPawn();
 	if (!pawn || !pawn->IsAlive())
 	{
 		return;
 	}
-	// If we teleport the player to the same origin,
-	// the player ends just a slightly bit off from where they are supposed to be...
+
 	Vector currentOrigin;
 	this->player->GetOrigin(&currentOrigin);
+
+	// Update data for undoing teleports
+	u32 flags = pawn->m_fFlags();
+	this->undoTeleportData.teleportOnGround = ((flags & FL_ONGROUND) || (pawn->m_MoveType() == MOVETYPE_LADDER));
+	this->undoTeleportData.origin = currentOrigin;
+	this->player->GetAngles(&this->undoTeleportData.angles);
+	this->undoTeleportData.slopeDropHeight = pawn->m_flSlopeDropHeight();
+	this->undoTeleportData.slopeDropOffset = pawn->m_flSlopeDropOffset();
+	if (this->player->GetMoveServices())
+	{
+		this->undoTeleportData.ladderNormal = this->player->GetMoveServices()->m_vecLadderNormal();
+		this->undoTeleportData.onLadder = pawn->m_MoveType() == MOVETYPE_LADDER;
+	}
+	this->undoTeleportData.groundEnt = pawn->m_hGroundEntity();
+
+	this->player->noclipService->DisableNoclip();
+
+	// If we teleport the player to the same origin,
+	// the player ends just a slightly bit off from where they are supposed to be...
 	// If we teleport the player to this origin every tick, they will end up NOT on this origin in the end somehow.
 	// So we only set the player origin if it doesn't match.
 	if (currentOrigin != cp.origin)
@@ -94,7 +142,7 @@ void KZCheckpointService::DoTeleport(const Checkpoint &cp)
 	pawn->m_flSlopeDropHeight(cp.slopeDropHeight);
 	pawn->m_flSlopeDropOffset(cp.slopeDropOffset);
 
-	CBaseEntity2 *groundEntity = static_cast<CBaseEntity2 *>(GameEntitySystem()->GetBaseEntity(cp.groundEnt));
+	CBaseEntity *groundEntity = static_cast<CBaseEntity *>(GameEntitySystem()->GetEntityInstance(cp.groundEnt));
 	// Don't attach the player onto moving platform (because they might not be there anymore). World doesn't move
 	// though.
 	if (groundEntity
@@ -110,7 +158,7 @@ void KZCheckpointService::DoTeleport(const Checkpoint &cp)
 		ms->m_vecLadderNormal(cp.ladderNormal);
 		if (!this->player->timerService->GetPaused())
 		{
-			this->player->GetPawn()->SetMoveType(MOVETYPE_LADDER);
+			this->player->SetMoveType(MOVETYPE_LADDER);
 		}
 		else
 		{
@@ -129,7 +177,7 @@ void KZCheckpointService::DoTeleport(const Checkpoint &cp)
 	this->tpCount++;
 	this->teleportTime = g_pKZUtils->GetServerGlobals()->curtime;
 	this->PlayTeleportSound();
-	this->lastTeleportedCheckpoint = &cp;
+	this->lastTeleportedCheckpoint = cp;
 }
 
 void KZCheckpointService::TpToCheckpoint()
@@ -151,11 +199,10 @@ void KZCheckpointService::TpToNextCp()
 
 void KZCheckpointService::TpHoldPlayerStill()
 {
-	bool noLastTpCheckpoint = this->lastTeleportedCheckpoint == nullptr;
 	bool isAlive = this->player->IsAlive();
 	bool justTeleported = g_pKZUtils->GetServerGlobals()->curtime - this->teleportTime > 0.04;
 
-	if (noLastTpCheckpoint || !isAlive || justTeleported)
+	if (!isAlive || justTeleported)
 	{
 		return;
 	}
@@ -164,10 +211,10 @@ void KZCheckpointService::TpHoldPlayerStill()
 	this->player->GetOrigin(&currentOrigin);
 
 	// If we teleport the player to this origin every tick, they will end up NOT on this origin in the end somehow.
-	if (currentOrigin != this->lastTeleportedCheckpoint->origin)
+	if (currentOrigin != this->lastTeleportedCheckpoint.origin)
 	{
-		this->player->SetOrigin(this->lastTeleportedCheckpoint->origin);
-		if (!utils::IsSpawnValid(this->lastTeleportedCheckpoint->origin))
+		this->player->SetOrigin(this->lastTeleportedCheckpoint.origin);
+		if (!utils::IsSpawnValid(this->lastTeleportedCheckpoint.origin))
 		{
 			this->player->GetMoveServices()->m_bDucked(true);
 			this->player->GetMoveServices()->m_flDuckAmount(1.0f);
@@ -175,20 +222,20 @@ void KZCheckpointService::TpHoldPlayerStill()
 	}
 	this->player->SetVelocity(Vector(0, 0, 0));
 	CCSPlayer_MovementServices *ms = this->player->GetMoveServices();
-	if (this->lastTeleportedCheckpoint->onLadder && this->player->GetPawn()->m_MoveType() != MOVETYPE_NONE)
+	if (this->lastTeleportedCheckpoint.onLadder && this->player->GetPlayerPawn()->m_MoveType() != MOVETYPE_NONE)
 	{
-		ms->m_vecLadderNormal(this->lastTeleportedCheckpoint->ladderNormal);
-		this->player->GetPawn()->SetMoveType(MOVETYPE_LADDER);
+		ms->m_vecLadderNormal(this->lastTeleportedCheckpoint.ladderNormal);
+		this->player->SetMoveType(MOVETYPE_LADDER);
 	}
 	else
 	{
 		ms->m_vecLadderNormal(vec3_origin);
 	}
-	if (this->lastTeleportedCheckpoint->groundEnt)
+	if (this->lastTeleportedCheckpoint.groundEnt)
 	{
-		this->player->GetPawn()->m_fFlags(this->player->GetPawn()->m_fFlags | FL_ONGROUND);
+		this->player->GetPlayerPawn()->m_fFlags(this->player->GetPlayerPawn()->m_fFlags | FL_ONGROUND);
 	}
-	CBaseEntity2 *groundEntity = static_cast<CBaseEntity2 *>(GameEntitySystem()->GetBaseEntity(this->lastTeleportedCheckpoint->groundEnt));
+	CBaseEntity *groundEntity = static_cast<CBaseEntity *>(GameEntitySystem()->GetEntityInstance(this->lastTeleportedCheckpoint.groundEnt));
 
 	if (!groundEntity)
 	{
@@ -200,16 +247,16 @@ void KZCheckpointService::TpHoldPlayerStill()
 
 	if (isWorldEntity || isStaticGround)
 	{
-		this->player->GetPawn()->m_hGroundEntity(this->lastTeleportedCheckpoint->groundEnt);
+		this->player->GetPlayerPawn()->m_hGroundEntity(this->lastTeleportedCheckpoint.groundEnt);
 	}
 }
 
 void KZCheckpointService::SetStartPosition()
 {
-	CCSPlayerPawn *pawn = this->player->GetPawn();
+	CCSPlayerPawn *pawn = this->player->GetPlayerPawn();
 	if (!pawn)
 	{
-		this->player->PrintChat(true, false, "{grey}Failed to set your custom start position!");
+		this->player->languageService->PrintChat(true, false, "Can't Set Custom Start Position (Generic)");
 		return;
 	}
 	this->hasCustomStartPosition = true;
@@ -218,13 +265,13 @@ void KZCheckpointService::SetStartPosition()
 	this->customStartPosition.slopeDropHeight = pawn->m_flSlopeDropHeight();
 	this->customStartPosition.slopeDropOffset = pawn->m_flSlopeDropOffset();
 	this->customStartPosition.groundEnt = pawn->m_hGroundEntity();
-	this->player->PrintChat(true, false, "{grey}You have set your custom start position.");
+	this->player->languageService->PrintChat(true, false, "Set Custom Start Position");
 }
 
 void KZCheckpointService::ClearStartPosition()
 {
 	this->hasCustomStartPosition = false;
-	this->player->PrintChat(true, false, "{grey}You have cleared your custom start position.");
+	this->player->languageService->PrintChat(true, false, "Cleared Custom Start Position");
 }
 
 void KZCheckpointService::TpToStartPosition()

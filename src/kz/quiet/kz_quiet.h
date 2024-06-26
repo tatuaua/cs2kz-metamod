@@ -7,14 +7,14 @@ namespace KZ::quiet
 {
 	void OnCheckTransmit(CCheckTransmitInfo **pInfo, int infoCount);
 
-	void OnPostEvent(INetworkSerializable *pEvent, const void *pData, const uint64 *clients);
+	void OnPostEvent(INetworkMessageInternal *pEvent, const CNetMessage *pData, const uint64 *clients);
 } // namespace KZ::quiet
 
 class KZQuietService : public KZBaseService
 {
 	using KZBaseService::KZBaseService;
 	u8 lastObserverMode;
-	CHandle<CBaseEntity2> lastObserverTarget;
+	CHandle<CBaseEntity> lastObserverTarget;
 	bool hideWeapon {};
 
 public:

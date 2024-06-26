@@ -7,8 +7,7 @@
 
 class CGameConfig;
 class CTraceFilterPlayerMovementCS;
-class CTraceFilterS2;
-struct trace_t_s2;
+class CTraceFilter;
 class CCSPlayerController;
 class CGameResourceService;
 class CSchemaSystem;
@@ -18,23 +17,25 @@ class IGameEventManager2;
 class IGameEventSystem;
 class CBasePlayerPawn;
 class CCSPlayerPawn;
-class CBaseEntity2;
+class CBaseEntity;
 class CBasePlayerController;
 class IGameEventListener2;
 class CTimerBase;
+class CServerSideClient;
+
 struct SndOpEventGuid_t;
 struct EmitSound_t;
 
 typedef void InitPlayerMovementTraceFilter_t(CTraceFilterPlayerMovementCS &pFilter, CEntityInstance *pHandleEntity, uint64_t interactWith,
 											 int collisionGroup);
-typedef void InitGameTrace_t(trace_t_s2 *trace);
+typedef void InitGameTrace_t(trace_t *trace);
 typedef IGameEventListener2 *GetLegacyGameEventListener_t(CPlayerSlot slot);
 typedef void SnapViewAngles_t(CBasePlayerPawn *pawn, const QAngle &angle);
-typedef CBaseEntity2 *FindEntityByClassname_t(CEntitySystem *, CEntityInstance *, const char *);
+typedef CBaseEntity *FindEntityByClassname_t(CEntitySystem *, CEntityInstance *, const char *);
 typedef SndOpEventGuid_t EmitSoundFunc_t(IRecipientFilter &filter, CEntityIndex ent, const EmitSound_t &params);
-typedef void TracePlayerBBox_t(const Vector &start, const Vector &end, const bbox_t &bounds, CTraceFilterS2 *filter, trace_t_s2 &pm);
+typedef void TracePlayerBBox_t(const Vector &start, const Vector &end, const bbox_t &bounds, CTraceFilter *filter, trace_t &pm);
 typedef void SwitchTeam_t(CCSPlayerController *controller, int team);
-typedef void SetPawn_t(CBasePlayerController *controller, CCSPlayerPawn *pawn, bool, bool);
+typedef void SetPawn_t(CBasePlayerController *controller, CCSPlayerPawn *pawn, bool, bool, bool);
 
 namespace interfaces
 {
@@ -91,12 +92,12 @@ public:
 	virtual const CGlobalVars *GetServerGlobals();
 	virtual CGlobalVars *GetGlobals();
 
-	virtual CBaseEntity2 *FindEntityByClassname(CEntityInstance *start, const char *name);
+	virtual CBaseEntity *FindEntityByClassname(CEntityInstance *start, const char *name);
 
-	virtual CBasePlayerController *GetController(CBaseEntity2 *entity);
+	virtual CBasePlayerController *GetController(CBaseEntity *entity);
 	virtual CBasePlayerController *GetController(CPlayerSlot slot);
 
-	virtual CPlayerSlot GetEntityPlayerSlot(CBaseEntity2 *entity);
+	virtual CPlayerSlot GetEntityPlayerSlot(CBaseEntity *entity);
 
 	// Convar stuff.
 	virtual void SendConVarValue(CPlayerSlot slot, ConVar *conVar, const char *value);
@@ -111,6 +112,12 @@ public:
 
 	virtual void AddTimer(CTimerBase *timer, bool preserveMapChange = true);
 	virtual void RemoveTimer(CTimerBase *timer);
+	virtual CUtlVector<CServerSideClient *> *GetClientList();
+
+	CServerSideClient *GetClientBySlot(CPlayerSlot slot)
+	{
+		return GetClientList() ? GetClientList()->Element(slot.Get()) : nullptr;
+	}
 };
 
 extern KZUtils *g_pKZUtils;

@@ -2,6 +2,8 @@
 #include "../mode/kz_mode.h"
 #include "../style/kz_style.h"
 #include "../noclip/kz_noclip.h"
+#include "../option/kz_option.h"
+#include "../language/kz_language.h"
 #include "utils/utils.h"
 #include "utils/simplecmds.h"
 
@@ -22,17 +24,32 @@ bool KZTimerService::UnregisterEventListener(KZTimerServiceEventListener *eventL
 	return eventListeners.FindAndRemove(eventListener);
 }
 
+void KZTimerService::StartZoneStartTouch()
+{
+	this->touchedGroundSinceTouchingStartZone = !!(this->player->GetPlayerPawn()->m_fFlags & FL_ONGROUND);
+	this->TimerStop(false);
+}
+
+void KZTimerService::StartZoneEndTouch()
+{
+	if (this->touchedGroundSinceTouchingStartZone)
+	{
+		this->TimerStart("");
+	}
+}
+
 bool KZTimerService::TimerStart(const char *courseName, bool playSound)
 {
 	// clang-format off
-	if (!this->player->GetPawn()->IsAlive()
+	if (!this->player->GetPlayerPawn()->IsAlive()
 		|| this->JustStartedTimer()
-		|| this->JustTeleported()
-		|| this->player->hitPerf
+		|| this->player->JustTeleported()
+		|| this->player->inPerf
 		|| this->player->noclipService->JustNoclipped()
 		|| !this->HasValidMoveType()
 		|| this->JustLanded()
-		|| (this->GetTimerRunning() && !V_stricmp(courseName, this->currentCourse)))
+		|| (this->GetTimerRunning() && !V_stricmp(courseName, this->currentCourse))
+		|| (!(this->player->GetPlayerPawn()->m_fFlags & FL_ONGROUND) && !this->GetValidJump()))
 	// clang-format on
 	{
 		return false;
@@ -103,7 +120,7 @@ bool KZTimerService::TimerEnd(const char *courseName)
 	this->lastEndTime = g_pKZUtils->GetServerGlobals()->curtime;
 	this->PlayTimerEndSound();
 
-	if (!this->player->GetPawn()->IsBot())
+	if (!this->player->GetPlayerPawn()->IsBot())
 	{
 		bool showMessage = true;
 		FOR_EACH_VEC(eventListeners, i)
@@ -157,6 +174,12 @@ void KZTimerService::TimerStopAll(bool playSound)
 	}
 }
 
+void KZTimerService::InvalidateJump()
+{
+	this->validJump = false;
+	this->lastInvalidateTime = g_pKZUtils->GetServerGlobals()->curtime;
+}
+
 void KZTimerService::PlayTimerStartSound()
 {
 	if (g_pKZUtils->GetServerGlobals()->curtime - this->lastStartSoundTime > KZ_TIMER_SOUND_COOLDOWN)
@@ -185,11 +208,6 @@ void KZTimerService::InvalidateRun()
 bool KZTimerService::HasValidMoveType()
 {
 	return KZTimerService::IsValidMoveType(this->player->GetMoveType());
-}
-
-bool KZTimerService::JustTeleported()
-{
-	return g_pKZUtils->GetServerGlobals()->curtime - this->lastTeleportTime < KZ_TIMER_MIN_GROUND_TIME;
 }
 
 bool KZTimerService::JustEndedTimer()
@@ -248,6 +266,12 @@ void KZTimerService::FormatTime(f64 time, char *output, u32 length, bool precise
 	}
 }
 
+internal std::string GetTeleportCountText(int tpCount, const char *language)
+{
+	return tpCount == 1 ? KZLanguageService::PrepareMessage(language, "1 Teleport Text")
+						: KZLanguageService::PrepareMessage(language, "2+ Teleports Text", tpCount);
+}
+
 void KZTimerService::PrintEndTimeString()
 {
 	CCSPlayerController *controller = this->player->GetController();
@@ -255,41 +279,61 @@ void KZTimerService::PrintEndTimeString()
 	KZTimerService::FormatTime(this->GetTime(), time, sizeof(time));
 	char tpCountStr[128] = "";
 	u32 tpCount = this->player->checkpointService->GetTeleportCount();
-	if (!tpCount)
+	switch (tpCount)
 	{
-		// clang-format off
-		snprintf(tpCountStr, sizeof(tpCountStr), "{purple}%s {grey}|{purple} %s{grey}",
-				 this->player->modeService->GetModeShortName(),
-				 this->player->styleService->GetStyleShortName());
-		// clang-format on
+		case 0:
+		{
+			// clang-format off
+			KZLanguageService::PrintChatAll(true, strlen(this->currentCourse) > 0 ? "Beat Course (PRO)" : "Beat Map (PRO)",
+				this->player->GetName(),
+				this->currentCourse,
+				time,
+				this->player->modeService->GetModeShortName(),
+				this->player->styleService->GetStyleShortName());
+			// clang-format on
+			break;
+		}
+		case 1:
+		{
+			// clang-format off
+			for (u32 i = 0; i < MAXPLAYERS + 1; i++) 
+			{ 
+				CBasePlayerController *controller = g_pKZPlayerManager->players[i]->GetController(); 
+				if (controller) 
+				{ 
+					g_pKZPlayerManager->ToPlayer(i)->languageService->PrintChat(true, false, strlen(this->currentCourse) > 0 ? "Beat Course (Standard)" : "Beat Map (Standard)",
+						this->player->GetName(),
+						this->currentCourse,
+						time,
+						this->player->modeService->GetModeShortName(),
+						this->player->styleService->GetStyleShortName(),
+						KZLanguageService::PrepareMessage(g_pKZPlayerManager->ToPlayer(i)->languageService->GetLanguage(), "1 Teleport Text"));
+				}
+			}
+			// clang-format on
+			break;
+		}
+		default:
+		{
+			// clang-format off
+			for (u32 i = 0; i < MAXPLAYERS + 1; i++) 
+			{ 
+				CBasePlayerController *controller = g_pKZPlayerManager->players[i]->GetController(); 
+				if (controller) 
+				{ 
+					g_pKZPlayerManager->ToPlayer(i)->languageService->PrintChat(true, false, strlen(this->currentCourse) > 0 ? "Beat Course (Standard)" : "Beat Map (Standard)",
+						this->player->GetName(),
+						this->currentCourse,
+						time,
+						this->player->modeService->GetModeShortName(),
+						this->player->styleService->GetStyleShortName(),
+						KZLanguageService::PrepareMessage(g_pKZPlayerManager->ToPlayer(i)->languageService->GetLanguage(), "2+ Teleports Text", tpCount));
+				}
+			}
+			// clang-format on
+			break;
+		}
 	}
-	else
-	{
-		// clang-format off
-		snprintf(tpCountStr, sizeof(tpCountStr), "{purple}%s {grey}|{purple} %s {grey}|{purple} %i {grey}TPs",
-				 this->player->modeService->GetModeShortName(),
-				 this->player->styleService->GetStyleShortName(),
-				 tpCount);
-		// clang-format on
-	}
-
-	char courseStr[KZ_MAX_COURSE_NAME_LENGTH + 16] = "";
-	if (strlen(this->currentCourse) > 0)
-	{
-		snprintf(courseStr, sizeof(courseStr), " course {default}%s{grey} ", this->currentCourse);
-	}
-
-	// clang-format off
-	utils::CPrintChatAll(
-		"%s {lime}%s {grey}finished %s with a%srun of {default}%s{grey}! [%s]",
-		KZ_CHAT_PREFIX,
-		this->player->GetController()->m_iszPlayerName(),
-		courseStr,
-		tpCount > 0 ? " " : " {blue}PRO{grey} ",
-		time,
-		tpCountStr
-	);
-	// clang-format on
 }
 
 void KZTimerService::Pause()
@@ -306,8 +350,8 @@ void KZTimerService::Pause()
 	}
 	if (!allowPause)
 	{
-		player->PrintChat(true, false, "%s", "{grey}Can't pause right now.");
-		// TODO: Play error sound to client
+		this->player->languageService->PrintChat(true, false, "Can't Pause (Generic)");
+		this->player->PlayErrorSound();
 		return;
 	}
 
@@ -316,7 +360,7 @@ void KZTimerService::Pause()
 	this->lastDuckValue = this->player->GetMoveServices()->m_flDuckAmount;
 	this->lastStaminaValue = this->player->GetMoveServices()->m_flStamina;
 	this->player->SetVelocity(vec3_origin);
-	this->player->GetPawn()->SetMoveType(MOVETYPE_NONE);
+	this->player->SetMoveType(MOVETYPE_NONE);
 
 	if (this->GetTimerRunning())
 	{
@@ -346,16 +390,16 @@ bool KZTimerService::CanPause(bool showError)
 		{
 			if (showError)
 			{
-				player->PrintChat(true, false, "%s", "{grey}Can't pause, just resumed.");
+				this->player->languageService->PrintChat(true, false, "Can't Pause (Just Resumed)");
 				this->player->PlayErrorSound();
 			}
 			return false;
 		}
-		else if (!this->player->GetPawn()->m_fFlags & FL_ONGROUND && !(velocity.Length2D() == 0.0f && velocity.z == 0.0f))
+		else if (!this->player->GetPlayerPawn()->m_fFlags & FL_ONGROUND && !(velocity.Length2D() == 0.0f && velocity.z == 0.0f))
 		{
 			if (showError)
 			{
-				player->PrintChat(true, false, "%s", "{grey}Can't pause, just resumed.");
+				this->player->languageService->PrintChat(true, false, "Can't Pause (Just Resumed)");
 				this->player->PlayErrorSound();
 			}
 			return false;
@@ -383,22 +427,22 @@ void KZTimerService::Resume(bool force)
 	}
 	if (!allowResume)
 	{
-		player->PrintChat(true, false, "%s", "{grey}Can't resume right now.");
+		this->player->languageService->PrintChat(true, false, "Can't Resume (Generic)");
 		this->player->PlayErrorSound();
 		return;
 	}
 
 	if (this->pausedOnLadder)
 	{
-		this->player->GetPawn()->SetMoveType(MOVETYPE_LADDER);
+		this->player->SetMoveType(MOVETYPE_LADDER);
 	}
 	else
 	{
-		this->player->GetPawn()->SetMoveType(MOVETYPE_WALK);
+		this->player->SetMoveType(MOVETYPE_WALK);
 	}
 
 	// GOKZ: prevent noclip exploit
-	this->player->GetPawn()->m_Collision().m_CollisionGroup() = KZ_COLLISION_GROUP_STANDARD;
+	this->player->GetPlayerPawn()->m_Collision().m_CollisionGroup() = KZ_COLLISION_GROUP_STANDARD;
 
 	this->paused = false;
 	if (this->GetTimerRunning())
@@ -421,7 +465,7 @@ bool KZTimerService::CanResume(bool showError)
 	{
 		if (showError)
 		{
-			player->PrintChat(true, false, "%s", "{grey}Can't resume, just paused.");
+			this->player->languageService->PrintChat(true, false, "Can't Resume (Just Paused)");
 			this->player->PlayErrorSound();
 		}
 		return false;
@@ -439,7 +483,6 @@ void KZTimerService::Reset()
 	this->lastStartSoundTime = {};
 	this->lastStartMode[0] = 0;
 	this->validTime = {};
-	this->lastTeleportTime = {};
 	this->paused = {};
 	this->pausedOnLadder = {};
 	this->lastPauseTime = {};
@@ -448,6 +491,9 @@ void KZTimerService::Reset()
 	this->hasResumedInThisRun = {};
 	this->lastDuckValue = {};
 	this->lastStaminaValue = {};
+	this->validJump = {};
+	this->lastInvalidateTime = {};
+	this->touchedGroundSinceTouchingStartZone = {};
 }
 
 void KZTimerService::OnPhysicsSimulatePost()
@@ -458,8 +504,34 @@ void KZTimerService::OnPhysicsSimulatePost()
 	}
 }
 
+void KZTimerService::OnStartTouchGround()
+{
+	this->touchedGroundSinceTouchingStartZone = true;
+}
+
+void KZTimerService::OnStopTouchGround()
+{
+	if (this->HasValidMoveType() && this->lastInvalidateTime != g_pKZUtils->GetServerGlobals()->curtime)
+	{
+		this->validJump = true;
+	}
+	else
+	{
+		this->InvalidateJump();
+	}
+}
+
 void KZTimerService::OnChangeMoveType(MoveType_t oldMoveType)
 {
+	if (oldMoveType == MOVETYPE_LADDER && this->player->GetMoveType() == MOVETYPE_WALK
+		&& this->lastInvalidateTime != g_pKZUtils->GetServerGlobals()->curtime)
+	{
+		this->validJump = true;
+	}
+	else
+	{
+		this->InvalidateJump();
+	}
 	// Check if player has escaped MOVETYPE_NONE
 	if (!this->paused || this->player->GetMoveType() == MOVETYPE_NONE)
 	{
@@ -491,7 +563,7 @@ void KZTimerService::OnClientDisconnect()
 
 void KZTimerService::OnPlayerSpawn()
 {
-	if (!this->player->GetPawn() || !this->paused)
+	if (!this->player->GetPlayerPawn() || !this->paused)
 	{
 		return;
 	}
@@ -547,7 +619,10 @@ void KZTimerService::OnRoundStart()
 
 void KZTimerService::OnTeleport(const Vector *newPosition, const QAngle *newAngles, const Vector *newVelocity)
 {
-	this->lastTeleportTime = g_pKZUtils->GetServerGlobals()->curtime;
+	if (newPosition || newVelocity)
+	{
+		this->InvalidateJump();
+	}
 }
 
 internal SCMD_CALLBACK(Command_KzStopTimer)
@@ -569,6 +644,6 @@ internal SCMD_CALLBACK(Command_KzPauseTimer)
 
 void KZTimerService::RegisterCommands()
 {
-	scmd::RegisterCmd("kz_stop", Command_KzStopTimer, "Stop timer.");
-	scmd::RegisterCmd("kz_pause", Command_KzPauseTimer, "Toggle timer pause.");
+	scmd::RegisterCmd("kz_stop", Command_KzStopTimer);
+	scmd::RegisterCmd("kz_pause", Command_KzPauseTimer);
 }

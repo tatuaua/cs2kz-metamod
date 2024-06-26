@@ -1,4 +1,5 @@
 #pragma once
+#include "common.h"
 #include <functional>
 #include <tuple>
 #include "utils/utils.h"
@@ -12,19 +13,20 @@
 class CTimerBase
 {
 public:
-	CTimerBase(f64 initialInterval) : interval(initialInterval) {};
+	CTimerBase(f64 initialInterval, bool useRealTime) : interval(initialInterval), useRealTime(useRealTime) {};
 
 	virtual bool Execute() = 0;
 
-	f64 interval;
+	f64 interval {};
 	f64 lastExecute = -1;
+	bool useRealTime {};
 };
 
 void ProcessTimers();
 void RemoveNonPersistentTimers();
 
-extern CUtlVector<CTimerBase *> g_PersistentTimers;
 extern CUtlVector<CTimerBase *> g_NonPersistentTimers;
+extern CUtlVector<CTimerBase *> g_PersistentTimers;
 
 template<typename... Args>
 class CTimer : public CTimerBase
@@ -35,7 +37,7 @@ public:
 	Fn m_fn;
 	std::tuple<Args...> m_args;
 
-	explicit CTimer(Fn fn, Args... args) : CTimerBase(0.0), m_fn(fn), m_args(std::make_tuple(std::move(args)...)) {}
+	explicit CTimer(bool useRealTime, Fn fn, Args... args) : CTimerBase(0.0, useRealTime), m_fn(fn), m_args(std::make_tuple(std::move(args)...)) {}
 
 	bool Execute() override
 	{
@@ -46,9 +48,9 @@ public:
 
 /* Creates a timer for the given function, the function must return a f64 that represents the interval in seconds; 0 or less to stop the timer */
 template<typename... Args>
-CTimer<Args...> *StartTimer(typename CTimer<Args...>::Fn fn, Args... args, bool preserveMapChange = true)
+CTimer<Args...> *StartTimer(typename CTimer<Args...>::Fn fn, Args... args, bool preserveMapChange = true, bool useRealTime = false)
 {
-	auto timer = new CTimer<Args...>(fn, args...);
+	auto timer = new CTimer<Args...>(useRealTime, fn, args...);
 	g_pKZUtils->AddTimer(timer, preserveMapChange);
 	return timer;
 }

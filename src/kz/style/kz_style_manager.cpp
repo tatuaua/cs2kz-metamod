@@ -9,6 +9,8 @@
 #include "utils/simplecmds.h"
 
 #include "../timer/kz_timer.h"
+#include "../language/kz_language.h"
+#include "utils/plat.h"
 
 internal SCMD_CALLBACK(Command_KzStyle);
 
@@ -30,7 +32,7 @@ void KZ::style::InitStyleManager()
 void KZ::style::LoadStylePlugins()
 {
 	char buffer[1024];
-	g_SMAPI->PathFormat(buffer, sizeof(buffer), "addons/cs2kz/styles/*.*");
+	g_SMAPI->PathFormat(buffer, sizeof(buffer), "addons/cs2kz/styles/*%s", MODULE_EXT);
 	FileFindHandle_t findHandle = {};
 	const char *output = g_pFullFileSystem->FindFirstEx(buffer, "GAME", &findHandle);
 	if (output)
@@ -109,33 +111,13 @@ void KZStyleManager::UnregisterStyle(const char *styleName)
 	}
 }
 
-void KZStyleManager::LoadDefaultStyle()
-{
-	char styleCfgPath[1024];
-	V_snprintf(styleCfgPath, sizeof(styleCfgPath), "%s%s", g_SMAPI->GetBaseDir(), "/addons/cs2kz/styles/style-config.txt");
-
-	KeyValues *styleCfgKeyValues = new KeyValues("StyleConfig");
-	styleCfgKeyValues->LoadFromFile(g_pFullFileSystem, styleCfgPath, nullptr);
-
-	const char *styleName = styleCfgKeyValues->GetString("defaultStyle");
-
-	FOR_EACH_VEC(this->styleInfos, i)
-	{
-		if (V_stricmp(this->styleInfos[i].shortName, styleName) == 0 || V_stricmp(this->styleInfos[i].longName, styleName) == 0)
-		{
-			defaultStyle = styleName;
-			break;
-		}
-	}
-}
-
-bool KZStyleManager::SwitchToStyle(KZPlayer *player, const char *styleName, bool silent)
+bool KZStyleManager::SwitchToStyle(KZPlayer *player, const char *styleName, bool silent, bool force)
 {
 	// Don't change style if it doesn't exist. Instead, print a list of styles to the client.
 	if (!styleName || !V_stricmp("", styleName))
 	{
-		player->PrintChat(true, false, "{grey}Usage: {default}kz_style <style>{grey}. Check console for possible styles!", KZ_CHAT_PREFIX);
-		player->PrintConsole(false, false, "Possible styles: (Current style is %s)", player->styleService->GetStyleName());
+		player->languageService->PrintChat(true, false, "Style Command Usage");
+		player->languageService->PrintConsole(false, false, "Possible & Current Styles", player->styleService->GetStyleName());
 		FOR_EACH_VEC(this->styleInfos, i)
 		{
 			// clang-format off
@@ -150,8 +132,9 @@ bool KZStyleManager::SwitchToStyle(KZPlayer *player, const char *styleName, bool
 		return false;
 	}
 
-	// If it's the same style, do nothing.
-	if (V_stricmp(player->styleService->GetStyleName(), styleName) == 0 || V_stricmp(player->styleService->GetStyleShortName(), styleName) == 0)
+	// If it's the same style, do nothing, unless it's forced.
+	if (!force
+		&& (V_stricmp(player->styleService->GetStyleName(), styleName) == 0 || V_stricmp(player->styleService->GetStyleShortName(), styleName) == 0))
 	{
 		return false;
 	}
@@ -170,7 +153,7 @@ bool KZStyleManager::SwitchToStyle(KZPlayer *player, const char *styleName, bool
 	{
 		if (!silent)
 		{
-			player->PrintChat(true, false, "{grey}The {purple}%s {grey}style is not available.", styleName);
+			player->languageService->PrintChat(true, false, "Style Not Available", styleName);
 		}
 		return false;
 	}
@@ -182,7 +165,7 @@ bool KZStyleManager::SwitchToStyle(KZPlayer *player, const char *styleName, bool
 
 	if (!silent)
 	{
-		player->PrintChat(true, false, "{grey}You have switched to the {purple}%s {grey}style.", player->styleService->GetStyleName());
+		player->languageService->PrintChat(true, false, "Switched Style", player->styleService->GetStyleName());
 	}
 
 	return true;
@@ -222,5 +205,5 @@ internal SCMD_CALLBACK(Command_KzStyle)
 
 void KZ::style::RegisterCommands()
 {
-	scmd::RegisterCmd("kz_style", Command_KzStyle, "List or change style.");
+	scmd::RegisterCmd("kz_style", Command_KzStyle);
 }

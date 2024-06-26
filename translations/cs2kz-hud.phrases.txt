@@ -1,0 +1,144 @@
+"Phrases"
+{
+	"Speed"
+	{
+		"en"	"Speed"
+		"chi"	"速度"
+		"pl"	"Prędkość"
+		"fi"	"Nopeus"
+		"sv"	"Hastighet"
+		"ua"	"Швидкість"
+	}
+	"HUD - Stopped Text"
+	{
+		// (STOPPED)
+		"en"		" (STOPPED)"
+		"chi"		" (停止)"
+		"pl"		" (PRZERWANY)"
+		"fi"		" (PYSÄYTETTY)"
+		"sv"		" (STOPPAD)"
+		"ua"		" (ЗУПИНЕНО)"
+	}
+	"HUD - Paused Text"
+	{
+		// (PAUSED)
+		"en"		" (PAUSED)"
+		"chi"		" (暂停)"
+		"pl"		" (WSTRZYMANY)"
+		"fi"		" (KESKEYTETTY)"
+		"sv"		" (PAUSAD)"
+		"ua"		" (НА ПАУЗІ)"
+	}
+	"HUD - Speed Text"
+	{
+		// Speed: 234
+		"#format"	"speed:.0f"
+		"en"		"Speed: {speed}"
+		"chi"		"速度: {speed}"
+		"pl"		"Prędkość: {speed}"
+		"fi"		"Nopeus: {speed}"
+		"sv"		"Hastighet: {speed}"
+		"ua"		"Швидкість: {speed}"
+	}
+	"HUD - Speed Text (Takeoff)"
+	{
+		// Speed: 234 (200)
+		"#format"	"speed:.0f,takeoff_speed:.0f"
+		"en"		"Speed: {speed} ({takeoff_speed})"
+		"chi"		"速度: {speed} ({takeoff_speed})"
+		"pl"		"Prędkość: {speed} ({takeoff_speed})"
+		"fi"		"Nopeus: {speed} ({takeoff_speed})"
+		"sv"		"Hastighet: {speed} ({takeoff_speed})"
+		"ua"		"Швидкість: {speed} ({takeoff_speed})"
+	}
+	"HUD - Key Text"
+	{
+		// Keys: A W S D C J
+		"#format"	"left:c,forward:c,back:c,right:c,duck:c,jump:c"
+		"en"		"Keys: {left} {forward} {back} {right} {duck} {jump}"
+		"chi"		"按键: {left} {forward} {back} {right} {duck} {jump}"
+		"pl"		"Klawisze: {left} {forward} {back} {right} {duck} {jump}"
+		"fi"		"Näppäimet: {left} {forward} {back} {right} {duck} {jump}"
+		"sv"		"Knappar: {left} {forward} {back} {right} {duck} {jump}"
+		"ua"		"Кнопки: {left} {forward} {back} {right} {duck} {jump}"
+	}
+	"HUD - Checkpoint Text"
+	{
+		// CP: 4/4, TPs: 12
+		"#format"	"checkpoint_index:d,checkpoint_count:d,teleport_count:d"
+		"en"		"CP: {checkpoint_index}/{checkpoint_count} TPs: {teleport_count}"
+		"chi"		"存点: {checkpoint_index}/{checkpoint_count} 传送: {teleport_count}"
+		"pl"		"CP: {checkpoint_index}/{checkpoint_count} TPs: {teleport_count}"
+		"fi"		"CP: {checkpoint_index}/{checkpoint_count} TPs: {teleport_count}"
+		"sv"		"CP: {checkpoint_index}/{checkpoint_count} TPs: {teleport_count}"
+		"ua"		"CP: {checkpoint_index}/{checkpoint_count} TPs: {teleport_count}"
+	}
+	"HUD - Timer Text"
+	{
+		// 01:23:45 (STOPPED) (PAUSED)
+		"#format"	"time:s,stop_text:s,pause_text:s"
+		"en"		"{time}{stop_text}{pause_text}"
+		"chi"		"计时: {time}{stop_text}{pause_text}"
+		"pl"		"{time}{stop_text}{pause_text}"
+		"fi"		"{time}{stop_text}{pause_text}"
+		"sv"		"{time}{stop_text}{pause_text}"
+		"ua"		"{time}{stop_text}{pause_text}"
+	}
+	"HUD - Center Text"
+	{
+		// CP: 4/4, TPs: 12
+		// 01:23:45 (STOPPED) (PAUSED)
+		"#format"	"key_text:s,checkpoint_text:s,timer_text:s,speed_text:s"
+		"en"		"{checkpoint_text}\n{timer_text}"
+		"chi"		"{checkpoint_text}\n{timer_text}"
+		"pl"		"{checkpoint_text}\n{timer_text}"
+		"fi"		"{checkpoint_text}\n{timer_text}"
+		"sv"		"{checkpoint_text}\n{timer_text}"
+		"ua"		"{checkpoint_text}\n{timer_text}"
+	}
+	// This text is actually "more" center.
+	"HUD - Alert Text"
+	{
+		// Speed: 234 (200)
+		// Keys: A W S D C J
+		"#format"	"key_text:s,checkpoint_text:s,timer_text:s,speed_text:s"
+		"en"		"{speed_text}\n{key_text}"
+		"chi"		"{speed_text}\n{key_text}"
+		"pl"		"{speed_text}\n{key_text}"
+		"fi"		"{speed_text}\n{key_text}"
+		"sv"		"{speed_text}\n{key_text}"
+		"ua"		"{speed_text}\n{key_text}"
+	}
+	"HUD - HTML Center Text"
+	{
+		// Unused
+		"#format"	"key_text:s,checkpoint_text:s,timer_text:s,speed_text:s"
+		"en"		""
+		"chi"		""
+		"pl"		""
+		"fi"		""
+		"sv"		""
+		"ua"		""
+	}
+	
+	"HUD Option - Info Panel - Enable"
+	{
+		"en"		"{grey}Your centre information panel has been enabled."
+		"chi"		"{grey}你的中心面板已打开."
+		"ru"		"{grey}Ваша центровая информационная панель была включена."
+		"pl"		"{grey}Środkowy panel informacyjny został włączony."
+		"fi"		"{grey}Sinun keski-infopaneelisi on otettu käyttöön."
+		"sv"		"{grey}Din mittpanel har aktiverats."
+		"ua"		"{grey}Ви увімкнули відображення центральної панелі."
+	}
+	"HUD Option - Info Panel - Disable"
+	{
+		"en"		"{grey}Your centre information panel has been disabled."
+		"chi"		"{grey}你的中心面板已关闭."
+		"ru"		"{grey}Ваша центровая информационная панель была выключена."
+		"pl"		"{grey}Środkowy panel informacyjny został wyłączony."
+		"fi"		"{grey}Sinun keski-infopaneelisi on poistettu käyttöstä."
+		"sv"		"{grey}Din mittpanel har inaktiverats."
+		"ua"		"{grey}Ви вимкнули відображення центральної панелі."
+	}
+}

@@ -1,6 +1,7 @@
 #include "kz_noclip.h"
 
 #include "../timer/kz_timer.h"
+#include "../language/kz_language.h"
 
 #include "utils/utils.h"
 #include "utils/simplecmds.h"
@@ -13,7 +14,7 @@ void KZNoclipService::Reset()
 
 void KZNoclipService::HandleNoclip()
 {
-	CCSPlayerPawn *pawn = this->player->GetPawn();
+	CCSPlayerPawn *pawn = this->player->GetPlayerPawn();
 	if (this->inNoclip)
 	{
 		if ((pawn->m_fFlags() & FL_NOCLIP) == 0)
@@ -22,7 +23,7 @@ void KZNoclipService::HandleNoclip()
 		}
 		if (pawn->m_MoveType() != MOVETYPE_NOCLIP)
 		{
-			pawn->SetMoveType(MOVETYPE_NOCLIP);
+			this->player->SetMoveType(MOVETYPE_NOCLIP);
 			this->player->timerService->TimerStop();
 		}
 		if (pawn->m_Collision().m_CollisionGroup() != KZ_COLLISION_GROUP_NOTRIGGER)
@@ -41,7 +42,7 @@ void KZNoclipService::HandleNoclip()
 		}
 		if (pawn->m_nActualMoveType() == MOVETYPE_NOCLIP)
 		{
-			pawn->SetMoveType(MOVETYPE_WALK);
+			this->player->SetMoveType(MOVETYPE_WALK);
 			this->player->timerService->TimerStop();
 		}
 		if (pawn->m_Collision().m_CollisionGroup() != KZ_COLLISION_GROUP_STANDARD)
@@ -58,20 +59,27 @@ internal SCMD_CALLBACK(Command_KzNoclip)
 {
 	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
 	player->noclipService->ToggleNoclip();
-	player->PrintChat(true, false, "{grey}Noclip %s.", player->noclipService->IsNoclipping() ? "enabled" : "disabled");
+	if (player->noclipService->IsNoclipping())
+	{
+		player->languageService->PrintChat(true, false, "Noclip - Enable");
+	}
+	else
+	{
+		player->languageService->PrintChat(true, false, "Noclip - Disable");
+	}
 	return MRES_SUPERCEDE;
 }
 
 void KZNoclipService::RegisterCommands()
 {
-	scmd::RegisterCmd("kz_noclip", Command_KzNoclip, "Toggle noclip.");
-	scmd::RegisterCmd("kz_nc", Command_KzNoclip, "Toggle noclip.");
-	scmd::RegisterCmd("noclip", Command_KzNoclip, "Toggle noclip.");
+	scmd::RegisterCmd("kz_noclip", Command_KzNoclip);
+	scmd::RegisterCmd("kz_nc", Command_KzNoclip);
+	scmd::RegisterCmd("noclip", Command_KzNoclip);
 }
 
 void KZNoclipService::HandleMoveCollision()
 {
-	CCSPlayerPawn *pawn = this->player->GetPawn();
+	CCSPlayerPawn *pawn = this->player->GetPlayerPawn();
 	if (!pawn)
 	{
 		return;

@@ -12,15 +12,21 @@
 
 #define KZ_WORKSHOP_ADDONS_ID "3171124941"
 
-#define KZ_CHAT_PREFIX "{lime}KZ {grey}|{default}"
+#define KZ_DEFAULT_CHAT_PREFIX  "{lime}KZ {grey}|{default}"
+#define KZ_DEFAULT_TIP_INTERVAL 75.0
+#define KZ_DEFAULT_LANGUAGE     "en"
+#define KZ_DEFAULT_STYLE        "Normal"
+#define KZ_DEFAULT_MODE         "Classic"
+
+#define KZ_RECENT_TELEPORT_THRESHOLD 0.05f
 
 class KZPlayer;
-// class Jump;
 class KZAnticheatService;
 class KZCheckpointService;
 class KZGlobalService;
 class KZHUDService;
 class KZJumpstatsService;
+class KZLanguageService;
 class KZMeasureService;
 class KZModeService;
 class KZNoclipService;
@@ -41,7 +47,7 @@ public:
 		this->Init();
 	}
 
-	void Init();
+	virtual void Init() override;
 	virtual void Reset() override;
 
 	virtual META_RES GetPlayerMaxSpeed(f32 &maxSpeed) override;
@@ -87,8 +93,8 @@ public:
 	virtual void OnFrictionPost() override;
 	virtual void OnWalkMove() override;
 	virtual void OnWalkMovePost() override;
-	virtual void OnTryPlayerMove(Vector *, trace_t_s2 *) override;
-	virtual void OnTryPlayerMovePost(Vector *, trace_t_s2 *) override;
+	virtual void OnTryPlayerMove(Vector *, trace_t *) override;
+	virtual void OnTryPlayerMovePost(Vector *, trace_t *) override;
 	virtual void OnCategorizePosition(bool) override;
 	virtual void OnCategorizePositionPost(bool) override;
 	virtual void OnFinishGravity() override;
@@ -122,8 +128,7 @@ public:
 
 private:
 	bool hideLegs {};
-
-	TurnState previousTurnState {};
+	f64 lastTeleportTime {};
 
 public:
 	KZAnticheatService *anticheatService {};
@@ -131,10 +136,11 @@ public:
 	KZGlobalService *globalService {};
 	KZHUDService *hudService {};
 	KZJumpstatsService *jumpstatsService {};
+	KZLanguageService *languageService {};
 	KZMeasureService *measureService {};
 	KZModeService *modeService {};
 	KZNoclipService *noclipService {};
-	KZOptionService *optionsService {};
+	KZOptionService *optionService {};
 	KZQuietService *quietService {};
 	KZRacingService *racingService {};
 	KZSavelocService *savelocService {};
@@ -154,6 +160,8 @@ public:
 	}
 
 	void UpdatePlayerModelAlpha();
+	// Teleport checking, used for multiple services
+	virtual bool JustTeleported();
 	// Triggerfix stuff
 
 	// Hit all triggers from start to end with the specified bounds,
@@ -198,7 +206,7 @@ public:
 	}
 
 public:
-	KZPlayer *ToPlayer(CCSPlayer_MovementServices *ms);
+	KZPlayer *ToPlayer(CPlayerPawnComponent *component);
 	KZPlayer *ToPlayer(CBasePlayerController *controller);
 	KZPlayer *ToPlayer(CBasePlayerPawn *pawn);
 	KZPlayer *ToPlayer(CPlayerSlot slot);
@@ -219,7 +227,6 @@ namespace KZ
 	namespace misc
 	{
 		void RegisterCommands();
-		void OnClientActive(CPlayerSlot slot);
 		void JoinTeam(KZPlayer *player, int newTeam, bool restorePos = true);
 	} // namespace misc
 };    // namespace KZ

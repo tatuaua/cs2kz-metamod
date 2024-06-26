@@ -113,9 +113,9 @@ public:
 
 	virtual void OnWalkMovePost() {}
 
-	virtual void OnTryPlayerMove(Vector *, trace_t_s2 *) {}
+	virtual void OnTryPlayerMove(Vector *, trace_t *) {}
 
-	virtual void OnTryPlayerMovePost(Vector *, trace_t_s2 *) {}
+	virtual void OnTryPlayerMovePost(Vector *, trace_t *) {}
 
 	virtual void OnCategorizePosition(bool) {}
 
@@ -177,15 +177,12 @@ class KZModeManager
 	};
 
 public:
-	const char *defaultMode = "Classic";
-
 	// clang-format off
 	virtual bool RegisterMode(PluginId id, const char *shortModeName, const char *longModeName, ModeServiceFactory factory);
 	// clang-format on
 
 	virtual void UnregisterMode(const char *modeName);
-	void LoadDefaultMode();
-	bool SwitchToMode(KZPlayer *player, const char *modeName, bool silent = false);
+	bool SwitchToMode(KZPlayer *player, const char *modeName, bool silent = false, bool force = false);
 	void Cleanup();
 
 private:

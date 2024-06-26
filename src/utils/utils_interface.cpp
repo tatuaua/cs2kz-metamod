@@ -29,12 +29,12 @@ CGlobalVars *KZUtils::GetGlobals()
 	return server->GetGlobals();
 }
 
-CBaseEntity2 *KZUtils::FindEntityByClassname(CEntityInstance *start, const char *name)
+CBaseEntity *KZUtils::FindEntityByClassname(CEntityInstance *start, const char *name)
 {
 	return utils::FindEntityByClassname(start, name);
 }
 
-CBasePlayerController *KZUtils::GetController(CBaseEntity2 *entity)
+CBasePlayerController *KZUtils::GetController(CBaseEntity *entity)
 {
 	return utils::GetController(entity);
 }
@@ -44,7 +44,7 @@ CBasePlayerController *KZUtils::GetController(CPlayerSlot slot)
 	return utils::GetController(slot);
 }
 
-CPlayerSlot KZUtils::GetEntityPlayerSlot(CBaseEntity2 *entity)
+CPlayerSlot KZUtils::GetEntityPlayerSlot(CBaseEntity *entity)
 {
 	return utils::GetEntityPlayerSlot(entity);
 }
@@ -104,4 +104,14 @@ void KZUtils::RemoveTimer(CTimerBase *timer)
 			return;
 		}
 	}
+}
+
+CUtlVector<CServerSideClient *> *KZUtils::GetClientList()
+{
+	if (!g_pNetworkServerService)
+	{
+		return nullptr;
+	}
+	local_persist const int offset = g_pGameConfig->GetOffset("ClientOffset");
+	return (CUtlVector<CServerSideClient *> *)((char *)g_pNetworkServerService->GetIGameServer() + offset);
 }

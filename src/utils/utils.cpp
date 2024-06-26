@@ -1,5 +1,6 @@
 #include "networkbasetypes.pb.h"
 
+#include "common.h"
 #include "cs2kz.h"
 #include "addresses.h"
 #include "gameconfig.h"
@@ -10,6 +11,7 @@
 #include "igameeventsystem.h"
 #include "sdk/recipientfilters.h"
 #include "public/networksystem/inetworkmessages.h"
+#include "gametrace.h"
 
 #include "module.h"
 #include "detours.h"
@@ -52,9 +54,24 @@ bool utils::Initialize(ISmmAPI *ismm, char *error, size_t maxlen)
 		Warning("%s\n", error);
 		return false;
 	}
-	// Initialize this later because we didn't have game config before.
-	interfaces::pGameEventManager =
-		(IGameEventManager2 *)(CALL_VIRTUAL(uintptr_t, g_pGameConfig->GetOffset("GameEventManager"), interfaces::pServer) - 8);
+
+	// Convoluted way of having GameEventManager regardless of lateloading
+	u8 *ptr = (u8 *)g_pGameConfig->ResolveSignature("GameEventManager");
+
+	if (!ptr)
+	{
+		return false;
+	}
+
+	ptr += 3;
+	// Grab the offset as 4 bytes
+	u32 offset = *(u32 *)ptr;
+
+	// Go to the next instruction, which is the starting point of the relative jump
+	ptr += 4;
+
+	// Now grab our pointer
+	interfaces::pGameEventManager = (IGameEventManager2 *)(ptr + offset);
 
 	RESOLVE_SIG(g_pGameConfig, "TracePlayerBBox", TracePlayerBBox_t, TracePlayerBBox);
 	RESOLVE_SIG(g_pGameConfig, "InitGameTrace", InitGameTrace_t, InitGameTrace);
@@ -70,6 +87,7 @@ bool utils::Initialize(ISmmAPI *ismm, char *error, size_t maxlen)
 
 	utils::UnlockConVars();
 	utils::UnlockConCommands();
+
 	InitDetours();
 	return true;
 }
@@ -79,7 +97,7 @@ void utils::Cleanup()
 	FlushAllDetours();
 }
 
-CBaseEntity2 *utils::FindEntityByClassname(CEntityInstance *start, const char *name)
+CBaseEntity *utils::FindEntityByClassname(CEntityInstance *start, const char *name)
 {
 	if (!GameEntitySystem())
 	{
@@ -87,7 +105,7 @@ CBaseEntity2 *utils::FindEntityByClassname(CEntityInstance *start, const char *n
 	}
 	EntityInstanceByClassIter_t iter(start, name);
 
-	return static_cast<CBaseEntity2 *>(iter.Next());
+	return static_cast<CBaseEntity *>(iter.Next());
 }
 
 void utils::UnlockConVars()
@@ -144,10 +162,26 @@ void utils::UnlockConCommands()
 	} while (pConCommand && pConCommand != pInvalidCommand);
 }
 
-CBasePlayerController *utils::GetController(CBaseEntity2 *entity)
+CBasePlayerController *utils::GetController(CBaseEntity *entity)
 {
 	CCSPlayerController *controller = nullptr;
-
+	if (!V_stricmp(entity->GetClassname(), "observer"))
+	{
+		CBasePlayerPawn *pawn = static_cast<CBasePlayerPawn *>(entity);
+		if (!pawn->m_hController().IsValid() || pawn->m_hController.Get() == 0)
+		{
+			for (i32 i = 0; i <= g_pKZUtils->GetServerGlobals()->maxClients; i++)
+			{
+				controller = (CCSPlayerController *)utils::GetController(CPlayerSlot(i));
+				if (controller && controller->m_hObserverPawn() && controller->m_hObserverPawn().Get() == entity)
+				{
+					return controller;
+				}
+			}
+			return nullptr;
+		}
+		return pawn->m_hController.Get();
+	}
 	if (entity->IsPawn())
 	{
 		CBasePlayerPawn *pawn = static_cast<CBasePlayerPawn *>(entity);
@@ -182,7 +216,7 @@ CBasePlayerController *utils::GetController(CPlayerSlot slot)
 	{
 		return nullptr;
 	}
-	CBaseEntity2 *ent = static_cast<CBaseEntity2 *>(GameEntitySystem()->GetBaseEntity(CEntityIndex(slot.Get() + 1)));
+	CBaseEntity *ent = static_cast<CBaseEntity *>(GameEntitySystem()->GetEntityInstance(CEntityIndex(slot.Get() + 1)));
 	if (!ent)
 	{
 		return nullptr;
@@ -190,7 +224,7 @@ CBasePlayerController *utils::GetController(CPlayerSlot slot)
 	return ent->IsController() ? static_cast<CBasePlayerController *>(ent) : nullptr;
 }
 
-CPlayerSlot utils::GetEntityPlayerSlot(CBaseEntity2 *entity)
+CPlayerSlot utils::GetEntityPlayerSlot(CBaseEntity *entity)
 {
 	CBasePlayerController *controller = utils::GetController(entity);
 	if (!controller)
@@ -248,19 +282,20 @@ f32 utils::GetAngleDifference(const f32 source, const f32 target, const f32 c, b
 
 void utils::SendConVarValue(CPlayerSlot slot, ConVar *conVar, const char *value)
 {
-	INetworkSerializable *netmsg = g_pNetworkMessages->FindNetworkMessagePartial("SetConVar");
-	CNETMsg_SetConVar *msg = new CNETMsg_SetConVar;
+	INetworkMessageInternal *netmsg = g_pNetworkMessages->FindNetworkMessagePartial("SetConVar");
+	auto msg = netmsg->AllocateMessage()->ToPB<CNETMsg_SetConVar>();
 	CMsg_CVars_CVar *cvar = msg->mutable_convars()->add_cvars();
 	cvar->set_name(conVar->m_pszName);
 	cvar->set_value(value);
 	CSingleRecipientFilter filter(slot.Get());
 	interfaces::pGameEventSystem->PostEventAbstract(0, false, &filter, netmsg, msg, 0);
+	netmsg->DeallocateMessage(msg);
 }
 
 void utils::SendMultipleConVarValues(CPlayerSlot slot, ConVar **conVar, const char **value, u32 size)
 {
-	INetworkSerializable *netmsg = g_pNetworkMessages->FindNetworkMessagePartial("SetConVar");
-	CNETMsg_SetConVar *msg = new CNETMsg_SetConVar;
+	INetworkMessageInternal *netmsg = g_pNetworkMessages->FindNetworkMessagePartial("SetConVar");
+	auto msg = netmsg->AllocateMessage()->ToPB<CNETMsg_SetConVar>();
 	for (u32 i = 0; i < size; i++)
 	{
 		CMsg_CVars_CVar *cvar = msg->mutable_convars()->add_cvars();
@@ -269,23 +304,24 @@ void utils::SendMultipleConVarValues(CPlayerSlot slot, ConVar **conVar, const ch
 	}
 	CSingleRecipientFilter filter(slot.Get());
 	interfaces::pGameEventSystem->PostEventAbstract(0, false, &filter, netmsg, msg, 0);
+	netmsg->DeallocateMessage(msg);
 }
 
 bool utils::IsSpawnValid(const Vector &origin)
 {
 	bbox_t bounds = {{-16.0f, -16.0f, 0.0f}, {16.0f, 16.0f, 72.0f}};
-	CTraceFilterS2 filter;
-	filter.attr.m_bHitSolid = true;
-	filter.attr.m_bHitSolidRequiresGenerateContacts = true;
-	filter.attr.m_bShouldIgnoreDisabledPairs = true;
-	filter.attr.m_nCollisionGroup = COLLISION_GROUP_PLAYER_MOVEMENT;
-	filter.attr.m_nInteractsWith = 0x2c3011;
-	filter.attr.m_bUnkFlag3 = true;
-	filter.attr.m_nObjectSetMask = RNQUERY_OBJECTS_ALL;
-	filter.attr.m_nInteractsAs = 0x40000;
-	trace_t_s2 tr;
+	CTraceFilter filter;
+	filter.m_bHitSolid = true;
+	filter.m_bHitSolidRequiresGenerateContacts = true;
+	filter.m_bShouldIgnoreDisabledPairs = true;
+	filter.m_nCollisionGroup = COLLISION_GROUP_PLAYER_MOVEMENT;
+	filter.m_nInteractsWith = 0x2c3011;
+	filter.m_bUnknown = true;
+	filter.m_nObjectSetMask = RNQUERY_OBJECTS_ALL;
+	filter.m_nInteractsAs = 0x40000;
+	trace_t tr;
 	g_pKZUtils->TracePlayerBBox(origin, origin, bounds, &filter, tr);
-	if (tr.fraction != 1.0 || tr.startsolid)
+	if (tr.m_flFraction != 1.0 || tr.m_bStartInSolid)
 	{
 		return false;
 	}
@@ -298,7 +334,7 @@ bool utils::FindValidSpawn(Vector &origin, QAngle &angles)
 	bool searchCT = false;
 	Vector spawnOrigin;
 	QAngle spawnAngles;
-	CBaseEntity2 *spawnEntity = NULL;
+	CBaseEntity *spawnEntity = NULL;
 	while (!foundValidSpawn)
 	{
 		if (searchCT)

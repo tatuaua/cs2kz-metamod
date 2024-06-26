@@ -1,6 +1,13 @@
 #include "kz_checkpoint.h"
 #include "utils/simplecmds.h"
 
+internal SCMD_CALLBACK(Command_KzUndoTeleport)
+{
+	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
+	player->checkpointService->UndoTeleport();
+	return MRES_SUPERCEDE;
+}
+
 internal SCMD_CALLBACK(Command_KzCheckpoint)
 {
 	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
@@ -46,17 +53,18 @@ internal SCMD_CALLBACK(Command_ClearStartPos)
 void KZCheckpointService::RegisterCommands()
 {
 	// clang-format off
-	scmd::RegisterCmd("kz_checkpoint", Command_KzCheckpoint, "Make a checkpoint on ground or on a ladder.");
-	scmd::RegisterCmd("kz_cp", Command_KzCheckpoint, "Make a checkpoint on ground or on a ladder.");
-	scmd::RegisterCmd("kz_teleport", Command_KzTeleport, "Teleport to the current checkpoint.");
-	scmd::RegisterCmd("kz_tp", Command_KzTeleport, "Teleport to the current checkpoint.");
-	scmd::RegisterCmd("kz_prevcp", Command_KzPrevcp, "Teleport to the last checkpoint.");
-	scmd::RegisterCmd("kz_nextcp", Command_KzNextcp, "Teleport to the next checkpoint.");
-	scmd::RegisterCmd("kz_pcp", Command_KzPrevcp, "Teleport to the last checkpoint.");
-	scmd::RegisterCmd("kz_ncp", Command_KzNextcp, "Teleport to the next checkpoint.");
-	scmd::RegisterCmd("kz_setstartpos", Command_SetStartPos, "Set your custom start position to your current position.");
-	scmd::RegisterCmd("kz_ssp", Command_SetStartPos, "Set your custom start position to your current position.");
-	scmd::RegisterCmd("kz_clearstartpos", Command_ClearStartPos, "Clear your custom start position.");
-	scmd::RegisterCmd("kz_csp", Command_ClearStartPos, "Clear your custom start position.");
+	scmd::RegisterCmd("kz_undo", Command_KzUndoTeleport);
+	scmd::RegisterCmd("kz_checkpoint", Command_KzCheckpoint);
+	scmd::RegisterCmd("kz_cp", Command_KzCheckpoint);
+	scmd::RegisterCmd("kz_teleport", Command_KzTeleport);
+	scmd::RegisterCmd("kz_tp", Command_KzTeleport);
+	scmd::RegisterCmd("kz_prevcp", Command_KzPrevcp);
+	scmd::RegisterCmd("kz_nextcp", Command_KzNextcp);
+	scmd::RegisterCmd("kz_pcp", Command_KzPrevcp);
+	scmd::RegisterCmd("kz_ncp", Command_KzNextcp);
+	scmd::RegisterCmd("kz_setstartpos", Command_SetStartPos);
+	scmd::RegisterCmd("kz_ssp", Command_SetStartPos);
+	scmd::RegisterCmd("kz_clearstartpos", Command_ClearStartPos);
+	scmd::RegisterCmd("kz_csp", Command_ClearStartPos);
 	// clang-format on
 }
