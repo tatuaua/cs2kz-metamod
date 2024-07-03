@@ -13,6 +13,8 @@ void KZCheckpointService::Reset()
 {
 	this->ResetCheckpoints();
 	this->hasCustomStartPosition = false;
+	this->shouldPlayCpSound = true;
+	this->shouldPlayTpSound = true;
 }
 
 void KZCheckpointService::ResetCheckpoints()
@@ -197,6 +199,20 @@ void KZCheckpointService::TpToNextCp()
 	DoTeleport(this->currentCpIndex);
 }
 
+void KZCheckpointService::ToggleCpSound() 
+{
+	this->shouldPlayCpSound = !this->shouldPlayCpSound;
+	//this->player->languageService->PrintChat(true, false, "Toggle Cp Sound");
+	this->player->PrintChat(true, false, "Toggle Cp Sound");
+}
+
+void KZCheckpointService::ToggleTpSound()
+{
+	this->shouldPlayTpSound = !this->shouldPlayTpSound;
+	//this->player->languageService->PrintChat(true, false, "Toggle Tp Sound");
+	this->player->PrintChat(true, false, "Toggle Tp Sound");
+}
+
 void KZCheckpointService::TpHoldPlayerStill()
 {
 	bool isAlive = this->player->IsAlive();
@@ -281,10 +297,16 @@ void KZCheckpointService::TpToStartPosition()
 
 void KZCheckpointService::PlayCheckpointSound()
 {
-	utils::PlaySoundToClient(this->player->GetPlayerSlot(), KZ_SND_SET_CP);
+	if (this->shouldPlayCpSound)
+	{
+		utils::PlaySoundToClient(this->player->GetPlayerSlot(), KZ_SND_SET_CP);
+	}
 }
 
 void KZCheckpointService::PlayTeleportSound()
 {
-	utils::PlaySoundToClient(this->player->GetPlayerSlot(), KZ_SND_DO_TP);
+	if (this->shouldPlayTpSound)
+	{
+		utils::PlaySoundToClient(this->player->GetPlayerSlot(), KZ_SND_DO_TP);
+	}
 }

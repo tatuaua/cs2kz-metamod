@@ -42,6 +42,8 @@ private:
 	UndoTeleportData undoTeleportData;
 
 	bool hasCustomStartPosition {};
+	bool shouldPlayCpSound {};
+	bool shouldPlayTpSound {};
 	Checkpoint customStartPosition;
 	Checkpoint lastTeleportedCheckpoint {};
 
@@ -56,6 +58,8 @@ public:
 	void TpToCheckpoint();
 	void TpToPrevCp();
 	void TpToNextCp();
+	void ToggleCpSound();
+	void ToggleTpSound();
 
 	u32 GetTeleportCount()
 	{

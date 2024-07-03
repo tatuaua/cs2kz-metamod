@@ -36,6 +36,20 @@ internal SCMD_CALLBACK(Command_KzNextcp)
 	return MRES_SUPERCEDE;
 }
 
+internal SCMD_CALLBACK(Command_KzToggleCpSound)
+{
+	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
+	player->checkpointService->ToggleCpSound();
+	return MRES_SUPERCEDE;
+}
+
+internal SCMD_CALLBACK(Command_KzToggleTpSound)
+{
+	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
+	player->checkpointService->ToggleTpSound();
+	return MRES_SUPERCEDE;
+}
+
 internal SCMD_CALLBACK(Command_SetStartPos)
 {
 	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
@@ -60,6 +74,8 @@ void KZCheckpointService::RegisterCommands()
 	scmd::RegisterCmd("kz_tp", Command_KzTeleport);
 	scmd::RegisterCmd("kz_prevcp", Command_KzPrevcp);
 	scmd::RegisterCmd("kz_nextcp", Command_KzNextcp);
+	scmd::RegisterCmd("kz_togglecpsound", Command_KzToggleCpSound);
+	scmd::RegisterCmd("kz_toggletpsound", Command_KzToggleTpSound);
 	scmd::RegisterCmd("kz_pcp", Command_KzPrevcp);
 	scmd::RegisterCmd("kz_ncp", Command_KzNextcp);
 	scmd::RegisterCmd("kz_setstartpos", Command_SetStartPos);
