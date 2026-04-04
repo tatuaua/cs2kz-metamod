@@ -585,27 +585,36 @@ static_function void DrawClipMeshes(CPhysicsGameSystem *gs)
 	{
 		return;
 	}
-	FOR_EACH_MAP(gs->m_PhysicsSpawnGroups, i)
+	const Color playerClipColor = kz_playerclip_color.Get();
+
+	FOR_EACH_MAP(gs->m_PhysicsSpawnGroups, groupIndex)
 	{
-		CPhysicsGameSystem::PhysicsSpawnGroups_t &group = gs->m_PhysicsSpawnGroups[i];
+		CPhysicsGameSystem::PhysicsSpawnGroups_t &group = gs->m_PhysicsSpawnGroups[groupIndex];
 		CPhysAggregateInstance *instance = group.m_pLevelAggregateInstance;
-		CPhysAggregateData *aggregateData = instance ? instance->aggregateData : nullptr;
-		if (!aggregateData)
+		if (!instance)
 		{
-			META_CONPRINTF("PhysicsSpawnGroup %i: No aggregate data found for instance %p\n", i, instance);
 			continue;
 		}
-		FOR_EACH_VEC(aggregateData->m_Parts, i)
+
+		CPhysAggregateData *aggregateData = instance->aggregateData;
+		if (!aggregateData)
 		{
-			const VPhysXBodyPart_t *part = aggregateData->m_Parts[i];
+			META_CONPRINTF("PhysicsSpawnGroup %i: No aggregate data found for instance %p\n", groupIndex, instance);
+			continue;
+		}
+
+		FOR_EACH_VEC(aggregateData->m_Parts, partIndex)
+		{
+			const VPhysXBodyPart_t *part = aggregateData->m_Parts[partIndex];
 			if (!part)
 			{
 				continue;
 			}
+
 			clipsDrawn = true;
-			FOR_EACH_VEC(part->m_rnShape.m_hulls, j)
+			FOR_EACH_VEC(part->m_rnShape.m_hulls, hullIndex)
 			{
-				const RnHullDesc_t &hull = part->m_rnShape.m_hulls[j];
+				const RnHullDesc_t &hull = part->m_rnShape.m_hulls[hullIndex];
 				const RnCollisionAttr_t &collisionAttr = aggregateData->m_CollisionAttributes[hull.m_nCollisionAttributeIndex];
 				if (collisionAttr.HasInteractsAsLayer(LAYER_INDEX_CONTENTS_PLAYER_CLIP))
 				{
@@ -614,25 +623,23 @@ static_function void DrawClipMeshes(CPhysicsGameSystem *gs)
 					Ray_t ray;
 					ray.Init(hull.m_Hull.m_Bounds.m_vMinBounds, hull.m_Hull.m_Bounds.m_vMaxBounds, hull.m_Hull.m_VertexPositions.Base(),
 							 hull.m_Hull.m_VertexPositions.Count());
-					g_pKZUtils->DebugDrawMesh(transform, ray, kz_playerclip_color.Get().r(), kz_playerclip_color.Get().g(),
-											  kz_playerclip_color.Get().b(), kz_playerclip_color.Get().a(), true, false, -1.0f);
+					g_pKZUtils->DebugDrawMesh(transform, ray, playerClipColor.r(), playerClipColor.g(), playerClipColor.b(), playerClipColor.a(),
+											  true, false, -1.0f);
 				}
 			}
-			FOR_EACH_VEC(part->m_rnShape.m_meshes, j)
+
+			FOR_EACH_VEC(part->m_rnShape.m_meshes, meshIndex)
 			{
-				const RnMeshDesc_t &mesh = part->m_rnShape.m_meshes[j];
+				const RnMeshDesc_t &mesh = part->m_rnShape.m_meshes[meshIndex];
 				const RnCollisionAttr_t &collisionAttr = aggregateData->m_CollisionAttributes[mesh.m_nCollisionAttributeIndex];
 				if (collisionAttr.HasInteractsAsLayer(LAYER_INDEX_CONTENTS_PLAYER_CLIP))
 				{
-					CTransform transform;
-					transform.SetToIdentity();
-					FOR_EACH_VEC(mesh.m_Mesh.m_Triangles, k)
+					FOR_EACH_VEC(mesh.m_Mesh.m_Triangles, triangleIndex)
 					{
-						const RnTriangle_t &triangle = mesh.m_Mesh.m_Triangles[k];
+						const RnTriangle_t &triangle = mesh.m_Mesh.m_Triangles[triangleIndex];
 						g_pKZUtils->AddTriangleOverlay(mesh.m_Mesh.m_Vertices[triangle.m_nIndex[0]], mesh.m_Mesh.m_Vertices[triangle.m_nIndex[1]],
-													   mesh.m_Mesh.m_Vertices[triangle.m_nIndex[2]], kz_playerclip_color.Get().r(),
-													   kz_playerclip_color.Get().g(), kz_playerclip_color.Get().b(), kz_playerclip_color.Get().a(),
-													   false, -1.0f);
+													   mesh.m_Mesh.m_Vertices[triangle.m_nIndex[2]], playerClipColor.r(), playerClipColor.g(),
+													   playerClipColor.b(), playerClipColor.a(), false, -1.0f);
 					}
 				}
 			}
