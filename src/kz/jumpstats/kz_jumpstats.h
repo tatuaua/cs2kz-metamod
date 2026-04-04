@@ -314,10 +314,7 @@ public:
 		return this->jumpType;
 	}
 
-	JumpType GetReportJumpType()
-	{
-		return this->IsFailstat() ? this->originalJumpType : this->jumpType;
-	}
+	JumpType GetReportJumpType();
 
 	KZPlayer *GetJumpPlayer()
 	{

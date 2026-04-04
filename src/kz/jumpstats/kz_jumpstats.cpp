@@ -597,13 +597,14 @@ void Jump::End()
 	else if (!this->failstatValid)
 	{
 		// Airtime caps apply to landed jumps; failstats are evaluated at fail-plane crossing.
+		bool exceededAirtimeCap = false;
 		switch (this->jumpType)
 		{
 			case JumpType_LadderJump:
 			{
 				if (jumpDuration > 1.04)
 				{
-					this->jumpType = JumpType_Invalid;
+					exceededAirtimeCap = true;
 				}
 				break;
 			}
@@ -616,10 +617,16 @@ void Jump::End()
 			{
 				if (jumpDuration > 0.8)
 				{
-					this->jumpType = JumpType_Invalid;
+					exceededAirtimeCap = true;
 				}
 				break;
 			}
+		}
+
+		if (exceededAirtimeCap)
+		{
+			this->valid = false;
+			this->jumpType = JumpType_Invalid;
 		}
 	}
 	this->serverTick = g_pKZUtils->GetServerGlobals()->tickcount;
@@ -684,6 +691,19 @@ f32 Jump::GetDistance(bool useDistbugFix, bool disableAddDist, i32 floorLevel)
 		dist += (this->landingOrigin - this->takeoffOrigin).Length2D();
 	}
 	return floorLevel < 0 ? dist : floor(dist * pow(10, floorLevel)) / pow(10, floorLevel);
+}
+
+JumpType Jump::GetReportJumpType()
+{
+	if (this->IsFailstat())
+	{
+		return this->originalJumpType;
+	}
+	if (!this->IsValid() && this->player->optionService->GetPreferenceBool("jsAlways", false))
+	{
+		return this->originalJumpType;
+	}
+	return this->jumpType;
 }
 
 f32 Jump::GetAirPath()
@@ -769,7 +789,7 @@ JumpType KZJumpstatsService::DetermineJumpType()
 		Jump &previousJump = this->jumps[this->jumps.Count() - 2];
 		if (this->player->duckBugged)
 		{
-			if (previousJump.GetOffset() < JS_EPSILON && previousJump.GetJumpType() == JumpType_LongJump)
+			if (previousJump.IsValid() && previousJump.GetOffset() < JS_EPSILON && previousJump.GetJumpType() == JumpType_LongJump)
 			{
 				return JumpType_Jumpbug;
 			}
@@ -1008,15 +1028,18 @@ void KZJumpstatsService::HandleTeleport()
 		return;
 	}
 
-	// If failstat already exists, finalize and report it before invalidating due to teleport.
-	if (jump->IsFailstat())
-	{
-		jump->Invalidate("Teleported");
-		this->EndJump();
-		return;
-	}
+	Vector preTeleportOrigin;
+	this->player->GetOrigin(&preTeleportOrigin);
 
-	this->InvalidateJumpstats("Teleported");
+	// Teleports are not real landings. Use the pre-teleport origin/time as a synthetic landing snapshot.
+	this->player->landingOrigin = preTeleportOrigin;
+	this->player->landingOriginActual = preTeleportOrigin;
+	this->player->landingTime = g_pKZUtils->GetGlobals()->curtime;
+	this->player->landingTimeServer = g_pKZUtils->GetServerGlobals()->curtime;
+	this->player->landingTimeActual = this->player->landingTime;
+
+	jump->Invalidate("Teleported");
+	this->EndJump();
 }
 
 void KZJumpstatsService::InvalidateJumpstats(const char *reason)
