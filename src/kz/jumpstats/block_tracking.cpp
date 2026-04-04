@@ -347,6 +347,8 @@ void Jump::UpdateFailstat()
 	f32 prevOffset = this->failstatOffset;
 	f32 prevSync = this->failstatSync;
 	f32 prevBadAngles = this->failstatBadAngles;
+	i32 prevStrafeCount = this->failstatStrafeCount;
+	f32 prevTotalDistance = this->failstatTotalDistance;
 
 	if (!isLadderJump && rawDist >= (f32)JS_MIN_BLOCK_DISTANCE)
 	{
@@ -378,6 +380,8 @@ void Jump::UpdateFailstat()
 		}
 		this->failstatSync = totalDuration > 0.0f ? syncDuration / totalDuration : 0.0f;
 		this->failstatBadAngles = totalDuration > 0.0f ? baDuration / totalDuration : 0.0f;
+		this->failstatStrafeCount = this->strafes.Count();
+		this->failstatTotalDistance = this->totalDistance;
 		this->failstatValid = true;
 	}
 	else if (hadValidFailstat)
@@ -389,6 +393,8 @@ void Jump::UpdateFailstat()
 		this->failstatOffset = prevOffset;
 		this->failstatSync = prevSync;
 		this->failstatBadAngles = prevBadAngles;
+		this->failstatStrafeCount = prevStrafeCount;
+		this->failstatTotalDistance = prevTotalDistance;
 		this->failstatValid = true;
 	}
 }

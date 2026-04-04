@@ -268,6 +268,8 @@ public:
 	f32 failstatOffset {};
 	f32 failstatSync {};
 	f32 failstatBadAngles {};
+	i32 failstatStrafeCount {};
+	f32 failstatTotalDistance {};
 	// One pose per subtick movement.
 	JumpPose poseHistory[JS_FAILSTATS_MAX_TRACKED_TICKS];
 	i32 poseIndex {};
@@ -356,6 +358,15 @@ public:
 	f32 GetMaxSpeed()
 	{
 		return this->currentMaxSpeed;
+	}
+
+	i32 GetStrafeCount()
+	{
+		if (this->IsFailstat())
+		{
+			return this->failstatStrafeCount;
+		}
+		return this->strafes.Count();
 	}
 
 	f32 GetSync()

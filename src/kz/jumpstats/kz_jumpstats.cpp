@@ -473,10 +473,7 @@ void Jump::Update()
 	this->valid = this->valid && this->GetJumpPlayer()->styleServices.Count() == 0;
 
 	this->RecordPose();
-	if (this->IsValid())
-	{
-		this->UpdateFailstat();
-	}
+	this->UpdateFailstat();
 }
 
 void Jump::End()
@@ -691,6 +688,25 @@ f32 Jump::GetDistance(bool useDistbugFix, bool disableAddDist, i32 floorLevel)
 
 f32 Jump::GetAirPath()
 {
+	if (this->IsFailstat())
+	{
+		if (this->failstatTotalDistance <= 0.0f || this->failstatDistance <= 0.0f)
+		{
+			return 0.0f;
+		}
+		// failstatDistance includes +32 for non-ladder jumps (hull offset convention).
+		// Strip it to match what GetDistance(false, true) does for regular jumps.
+		f32 rawDist = this->failstatDistance;
+		if (this->GetReportJumpType() != JumpType_LadderJump)
+		{
+			rawDist -= 32.0f;
+		}
+		if (rawDist <= 0.0f)
+		{
+			return 0.0f;
+		}
+		return this->failstatTotalDistance / rawDist;
+	}
 	if (this->totalDistance <= 0.0f)
 	{
 		return 0.0;

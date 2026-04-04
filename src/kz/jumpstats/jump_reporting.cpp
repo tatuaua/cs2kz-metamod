@@ -103,8 +103,8 @@ void KZJumpstatsService::PrintJumpToChat(KZPlayer *target, Jump *jump, bool exte
 			jumpColor,
 			jumpTypeShort.c_str(),
 			jump->GetDistance(true, false, 1),
-			jump->strafes.Count(),
-			KZLanguageService::PrepareMessageWithLang(language, jump->strafes.Count() > 1 ? "Strafes" : "Strafe").c_str(),
+			jump->GetStrafeCount(),
+			KZLanguageService::PrepareMessageWithLang(language, jump->GetStrafeCount() > 1 ? "Strafes" : "Strafe").c_str(),
 			jump->GetSync() * 100.0f,
 			jump->GetJumpPlayer()->takeoffVelocity.Length2D(),
 			jump->GetMaxSpeed(),
@@ -119,8 +119,8 @@ void KZJumpstatsService::PrintJumpToChat(KZPlayer *target, Jump *jump, bool exte
 		jumpColor,
 		jumpTypeShort.c_str(),
 		jump->GetDistance(true, false, 1),
-		jump->strafes.Count(),
-		KZLanguageService::PrepareMessageWithLang(language, jump->strafes.Count() > 1 ? "Strafes" : "Strafe").c_str(),
+		jump->GetStrafeCount(),
+		KZLanguageService::PrepareMessageWithLang(language, jump->GetStrafeCount() > 1 ? "Strafes" : "Strafe").c_str(),
 		jump->GetSync() * 100.0f,
 		jump->GetJumpPlayer()->takeoffVelocity.Length2D(),
 		jump->GetMaxSpeed(),
@@ -219,8 +219,8 @@ void KZJumpstatsService::PrintJumpToConsole(KZPlayer *target, Jump *jump, bool b
 		blockString.c_str(),
 		edgeString.c_str(),
 		missString.c_str(),
-		jump->strafes.Count(),
-		KZLanguageService::PrepareMessageWithLang(language, jump->strafes.Count() > 1 ? "Strafes" : "Strafe").c_str(),
+		jump->GetStrafeCount(),
+		KZLanguageService::PrepareMessageWithLang(language, jump->GetStrafeCount() > 1 ? "Strafes" : "Strafe").c_str(),
 		jump->GetSync() * 100.0f,
 		jump->GetTakeoffSpeed(),
 		jump->GetMaxSpeed(),
@@ -358,7 +358,11 @@ void KZJumpstatsService::BroadcastJumpToChat(KZPlayer *target, Jump *jump)
 
 void KZJumpstatsService::PlayJumpstatSound(KZPlayer *target, Jump *jump, bool broadcast)
 {
-	if (broadcast && (jump->IsFailstat() || jump->GetOffset() <= -JS_EPSILON))
+	if (jump->IsFailstat())
+	{
+		return;
+	}
+	if (broadcast && jump->GetOffset() <= -JS_EPSILON)
 	{
 		return;
 	}
