@@ -449,12 +449,19 @@ const char *PLUGIN_REVISION_COUNT = \"{revision_count}\";
 
 MMSPlugin = MMSPluginConfig()
 MMSPlugin.detectSDKs()
-MMSPlugin.configurePluginMetadata()
+if not builder.options.build_vendor_deps:
+  MMSPlugin.configurePluginMetadata()
 MMSPlugin.configure()
 
 BuildScripts = [
   'AMBuilder',
   'PackageScript',
 ]
+
+if builder.options.build_vendor_deps:
+  BuildScripts = [
+    'vendor/zstd.AMBuilder',
+    'vendor/ixwebsocket.AMBuilder',
+  ]
 
 builder.Build(BuildScripts, { 'MMSPlugin': MMSPlugin }) # type: ignore
