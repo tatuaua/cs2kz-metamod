@@ -502,6 +502,7 @@ static_function void Hook_GameFrame(bool simulating, bool bFirstTick, bool bLast
 {
 	VPROF_BUDGET(__func__, "CS2KZ");
 	g_KZPlugin.serverGlobals = *(g_pKZUtils->GetGlobals());
+	g_pKZPlayerManager->PerformAuthChecks();
 	RecordAnnounce::Check();
 	BaseRequest::CheckRequests();
 	KZTelemetryService::ActiveCheck();

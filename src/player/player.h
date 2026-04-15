@@ -24,6 +24,8 @@ public:
 	{
 		unauthenticatedSteamID = k_steamIDNil;
 		hasPrime = false;
+		authPending = false;
+		authAuthorized = false;
 	}
 
 	virtual CCSPlayerController *GetController();
@@ -135,6 +137,8 @@ public:
 	// General
 	const i32 index;
 	bool hasPrime {};
+	bool authPending {};    // True if in auth queue waiting for validation
+	bool authAuthorized {}; // True if authorization completed
 
 private:
 	CSteamID unauthenticatedSteamID = k_steamIDNil;
@@ -218,8 +222,15 @@ public:
 		m_CallbackValidateAuthTicketResponse.Register(this, &PlayerManager::OnValidateAuthTicket);
 	}
 
+	// Auth queue management methods
+	void AddToAuthQueue(CPlayerSlot slot);
+	void RemoveFromAuthQueue(CPlayerSlot slot);
+	void PerformAuthChecks();
+	void AuthorizeClient(CPlayerSlot slot);
+
 private:
 	bool callbackRegistered {};
+	std::vector<CPlayerSlot> authQueue; // Queue of players pending auth validation
 
 public:
 	Player *players[MAXPLAYERS + 1];

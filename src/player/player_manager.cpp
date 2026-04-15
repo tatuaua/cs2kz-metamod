@@ -95,7 +95,14 @@ void PlayerManager::OnConnectClient(const char *pszName, ns_address *pAddr, uint
 void PlayerManager::OnClientConnect(CPlayerSlot slot, const char *pszName, uint64 xuid, const char *pszNetworkID, bool unk1,
 									CBufferString *pRejectReason)
 {
-	this->ToPlayer(slot)->OnPlayerConnect(xuid);
+	Player *player = this->ToPlayer(slot);
+	player->OnPlayerConnect(xuid);
+
+	// Enqueue for auth validation if not already authenticated
+	if (!player->IsAuthenticated() && !player->IsFakeClient())
+	{
+		this->AddToAuthQueue(slot);
+	}
 }
 
 void PlayerManager::OnConnectClientPost(const char *pszName, ns_address *pAddr, uint32 steam_handle, C2S_CONNECT_Message *pConnectMsg,
@@ -124,6 +131,8 @@ void PlayerManager::OnClientActive(CPlayerSlot slot, bool bLoadGame, const char 
 void PlayerManager::OnClientDisconnect(CPlayerSlot slot, ENetworkDisconnectionReason reason, const char *pszName, uint64 xuid,
 									   const char *pszNetworkID)
 {
+	// Remove from auth queue if present
+	this->RemoveFromAuthQueue(slot);
 	this->ToPlayer(slot)->Reset();
 }
 
@@ -152,9 +161,9 @@ void PlayerManager::OnLateLoad()
 	}
 	for (auto player : players)
 	{
-		if (player->IsAuthenticated())
+		if (player && player->IsAuthenticated())
 		{
-			player->OnAuthorized();
+			this->AuthorizeClient(player->GetPlayerSlot());
 		}
 	}
 }
@@ -177,8 +186,89 @@ void PlayerManager::OnValidateAuthTicket(ValidateAuthTicketResponse_t *pResponse
 		CServerSideClient *cl = player->GetClient();
 		if (cl && cl->GetClientSteamID() == pResponse->m_SteamID)
 		{
-			player->OnAuthorized();
+			this->AuthorizeClient(player->GetPlayerSlot());
 			return;
+		}
+	}
+}
+
+void PlayerManager::AddToAuthQueue(CPlayerSlot slot)
+{
+	Player *player = ToPlayer(slot);
+	if (!player)
+	{
+		return;
+	}
+
+	// Don't queue fake clients or already queued/authorized players
+	if (player->IsFakeClient() || player->authPending || player->authAuthorized)
+	{
+		return;
+	}
+
+	player->authPending = true;
+	this->authQueue.push_back(slot);
+}
+
+void PlayerManager::RemoveFromAuthQueue(CPlayerSlot slot)
+{
+	auto it = std::find(this->authQueue.begin(), this->authQueue.end(), slot);
+	if (it != this->authQueue.end())
+	{
+		this->authQueue.erase(it);
+	}
+}
+
+void PlayerManager::AuthorizeClient(CPlayerSlot slot)
+{
+	Player *player = ToPlayer(slot);
+	if (!player)
+	{
+		return;
+	}
+
+	if (player->authAuthorized)
+	{
+		return;
+	}
+
+	if (!player->IsConnected())
+	{
+		this->RemoveFromAuthQueue(slot);
+		return;
+	}
+
+	// Mark as authorized and clear pending flag
+	player->authAuthorized = true;
+	player->authPending = false;
+	this->RemoveFromAuthQueue(slot);
+
+	// Call the authorization hook - this invokes Player::OnAuthorized and subclass overrides
+	META_CONPRINTF("Player %s (slot %d) authenticated with SteamID %llu\n", player->GetName(), slot.Get(), player->GetSteamId64());
+	player->OnAuthorized();
+}
+
+void PlayerManager::PerformAuthChecks()
+{
+	for (CPlayerSlot slot : this->authQueue)
+	{
+		Player *player = ToPlayer(slot);
+		if (!player)
+		{
+			continue;
+		}
+
+		// If disconnected, mark for removal from queue
+		if (!player->IsConnected())
+		{
+			this->RemoveFromAuthQueue(slot);
+			continue;
+		}
+
+		// Check if engine has validated this player's auth identity
+		if (player->IsAuthenticated())
+		{
+			this->AuthorizeClient(slot);
 		}
 	}
 }
