@@ -305,8 +305,7 @@ void KZVanillaModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t *pFirstTr
 					break;
 				}
 				CrossProduct(planes[0], planes[1], dir);
-				dir.NormalizeInPlace();
-				dir.NormalizeInPlace();
+				dir = g_pKZUtils->NormalizeVector(dir);
 				d = dir.Dot(velocity);
 				VectorScale(dir, d, velocity);
 			}

@@ -200,7 +200,17 @@ public:
 	virtual void AddTriangleOverlay(Vector const &p1, Vector const &p2, Vector const &p3, u8 r, u8 g, u8 b, u8 a, bool noDepthTest, f64 flDuration);
 	virtual void ClearOverlays();
 
-	BotProfile *GetBotProfile(u8 difficulty = 2, i32 teamNumber = CS_TEAM_CT, i32 weaponClass = 2);
+	virtual Vector NormalizeVector(Vector vec)
+	{
+		f32 m = Max(Max(fabs(vec.x), fabs(vec.y)), fabs(vec.z));
+		Vector result = vec;
+		if (m > 0)
+		{
+			Vector u = vec / m;
+			result = u / sqrtf(u.x * u.x + u.y * u.y + u.z * u.z);
+		}
+		return result;
+	}
 };
 
 extern KZUtils *g_pKZUtils;

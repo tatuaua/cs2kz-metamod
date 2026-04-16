@@ -438,13 +438,13 @@ void KZClassicModeService::UpdateAngleHistory()
 	if (forward[2] != 0)
 	{
 		forward[2] = 0;
-		VectorNormalize(forward);
+		forward = g_pKZUtils->NormalizeVector(forward);
 	}
 
 	if (right[2] != 0)
 	{
 		right[2] = 0;
-		VectorNormalize(right);
+		right = g_pKZUtils->NormalizeVector(right);
 	}
 
 	Vector wishdir;
@@ -454,7 +454,7 @@ void KZClassicModeService::UpdateAngleHistory()
 	}
 	wishdir[2] = 0;
 
-	VectorNormalize(wishdir);
+	wishdir = g_pKZUtils->NormalizeVector(wishdir);
 
 	if (wishdir.Length() == 0)
 	{
@@ -464,7 +464,7 @@ void KZClassicModeService::UpdateAngleHistory()
 
 	Vector velocity = mv->m_vecVelocity;
 	velocity[2] = 0;
-	VectorNormalize(velocity);
+	velocity = g_pKZUtils->NormalizeVector(velocity);
 	QAngle accelAngle;
 	QAngle velAngle;
 	VectorAngles(wishdir, accelAngle);
@@ -736,7 +736,7 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t *pFirstTr
 			{
 				// We hit a plane that will significantly change our velocity.
 				// Make sure that this plane is significant enough.
-				Vector direction = velocity.Normalized();
+				Vector direction = g_pKZUtils->NormalizeVector(velocity);
 				Vector offsetDirection;
 				f32 offsets[] = {0.0f, -1.0f, 1.0f};
 				bool success {};
@@ -891,9 +891,7 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t *pFirstTr
 				Vector dir;
 				f32 d;
 				CrossProduct(planes[0], planes[1], dir);
-				// Yes, that's right, you need to do this twice because running it once won't ensure that this will be fully normalized.
-				dir.NormalizeInPlace();
-				dir.NormalizeInPlace();
+				dir = g_pKZUtils->NormalizeVector(dir);
 				d = dir.Dot(velocity);
 				VectorScale(dir, d, velocity);
 
@@ -914,7 +912,7 @@ void KZClassicModeService::OnTryPlayerMovePost(Vector *pFirstDest, trace_t *pFir
 	Vector velocity;
 	this->player->GetVelocity(&velocity);
 	bool velocityHeavilyModified =
-		this->tpmVelocity.Normalized().Dot(velocity.Normalized()) < RAMP_BUG_THRESHOLD
+		g_pKZUtils->NormalizeVector(this->tpmVelocity).Dot(g_pKZUtils->NormalizeVector(velocity)) < RAMP_BUG_THRESHOLD
 		|| (this->tpmVelocity.Length() > 50.0f && velocity.Length() / this->tpmVelocity.Length() < RAMP_BUG_VELOCITY_THRESHOLD);
 	if (this->overrideTPM && velocityHeavilyModified && this->tpmOrigin != vec3_invalid && this->tpmVelocity != vec3_invalid)
 	{
