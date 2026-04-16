@@ -9,6 +9,7 @@ cxx = MMSPlugin.sdk_target.cxx
 
 lib = cxx.StaticLibrary('ixwebsocket')
 
+
 lib.compiler.cxxincludes += [
   os.path.join(builder.sourcePath, 'vendor', 'ixwebsocket'),
 ]
@@ -19,6 +20,8 @@ if lib.compiler.target.platform == 'windows':
     os.path.join(builder.sourcePath, 'vendor', 'mbedtls', 'tf-psa-crypto', 'include'),
     os.path.join(builder.sourcePath, 'vendor', 'mbedtls', 'tf-psa-crypto', 'drivers', 'builtin', 'include'),
   ]
+else:
+  lib.compiler.defines += ['_GLIBCXX_USE_CXX11_ABI=0']
 
 ws_dir = os.path.join(builder.sourcePath, 'vendor', 'ixwebsocket', 'ixwebsocket')
 for file in os.listdir(ws_dir):

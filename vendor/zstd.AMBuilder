@@ -16,6 +16,8 @@ lib.compiler.cxxincludes += [
 if lib.compiler.target.platform == 'linux':
   # Linux PIC code requires this to avoid assembler errors.
   lib.compiler.defines += ['ZSTD_DISABLE_ASM']
+  # Match main plugin defines.
+  lib.compiler.defines += ['_GLIBCXX_USE_CXX11_ABI=0']
 
 lib.sources += [
   os.path.join(builder.sourcePath, 'vendor', 'zstd', 'lib', 'common', 'debug.c'),
