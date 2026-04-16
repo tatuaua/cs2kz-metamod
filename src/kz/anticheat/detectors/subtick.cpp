@@ -10,7 +10,7 @@
 #define SUBTICK_INVALID_COMMAND_WINDOW     5.0f
 #define SUBTICK_INVALID_COMMAND_THRESHOLD  5
 #define SUBTICK_SUSPICIOUS_MOVES_WINDOW    0.5f
-#define SUBTICK_SUSPICIOUS_MOVES_THRESHOLD 16
+#define SUBTICK_SUSPICIOUS_MOVES_THRESHOLD 20
 #define SUBTICK_SUBTICK_INPUTS_WINDOW      20.0f
 #define SUBTICK_SUBTICK_INPUTS_THRESHOLD   30
 #define SUBTICK_ZERO_WHEN_RATIO_THRESHOLD  0.9f
@@ -65,11 +65,6 @@ static_global bool HasExcessiveSubtickMovesWithAngles(const PlayerCommand &cmd)
 		if (step.button() == IN_ATTACK || step.button() == IN_ATTACK2 || step.button() == IN_USE || step.button() == IN_RELOAD
 			|| step.button() == IN_TURNLEFT || step.button() == IN_TURNRIGHT)
 		{
-			continue;
-		}
-		if (step.button() == IN_JUMP)
-		{
-			// They will get hit by the hyperscroll detector instead...
 			continue;
 		}
 		if (step.has_pitch_delta() || step.has_yaw_delta())
