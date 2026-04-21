@@ -160,7 +160,6 @@ public:
 	SCHEMA_FIELD(float, m_flLastDuckTime)
 	SCHEMA_FIELD(float, m_bDesiresDuck)
 	SCHEMA_FIELD(bool, m_bDucking)
-	SCHEMA_FIELD(float, m_flDuckOffset)
 	SCHEMA_FIELD(bool, m_duckUntilOnGround)
 	SCHEMA_FIELD(CCSPlayerLegacyJump, m_LegacyJump)
 	SCHEMA_FIELD(CCSPlayerModernJump, m_ModernJump)

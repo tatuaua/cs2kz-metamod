@@ -103,7 +103,6 @@ class KZClassicModeService : public KZModeService
 	};
 
 	static inline CVValue_t modeCvarValues[] = {
-		(bool)false,    // slope_drop_enable
 		(float)6.5f,    // sv_accelerate
 		(bool)false,    // sv_accelerate_use_weapon_speed
 		(float)100.0f,  // sv_airaccelerate

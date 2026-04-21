@@ -14,9 +14,6 @@ class CCSPlayerPawn : public CCSPlayerPawnBase
 public:
 	DECLARE_SCHEMA_CLASS_ENTITY(CCSPlayerPawn);
 	SCHEMA_FIELD(float, m_ignoreLadderJumpTime)
-	SCHEMA_FIELD(float, m_flSlopeDropOffset)
-	SCHEMA_FIELD(float, m_flSlopeDropHeight)
-
 	SCHEMA_FIELD(float, m_flVelocityModifier)
 
 	SCHEMA_FIELD(QAngle, m_angEyeAngles)

@@ -43,8 +43,7 @@ void KZCheckpointService::OnPlayerPreferencesLoaded()
 	if (KeyValues3 *startPos = ssps.FindMember(currentMap.Get()))
 	{
 		if (!startPos || !startPos->FindMember("origin") || !startPos->FindMember("angles") || !startPos->FindMember("ladderNormal")
-			|| !startPos->FindMember("onLadder") || !startPos->FindMember("groundEnt") || !startPos->FindMember("slopeDropOffset")
-			|| !startPos->FindMember("slopeDropHeight"))
+			|| !startPos->FindMember("onLadder") || !startPos->FindMember("groundEnt"))
 		{
 			return;
 		}
@@ -53,8 +52,6 @@ void KZCheckpointService::OnPlayerPreferencesLoaded()
 		this->customStartPosition.ladderNormal = startPos->FindMember("ladderNormal")->GetVector();
 		this->customStartPosition.onLadder = startPos->FindMember("onLadder")->GetBool();
 		this->customStartPosition.groundEnt = CEntityHandle(startPos->FindMember("groundEnt")->GetUInt());
-		this->customStartPosition.slopeDropOffset = startPos->FindMember("slopeDropOffset")->GetFloat();
-		this->customStartPosition.slopeDropHeight = startPos->FindMember("slopeDropHeight")->GetFloat();
 		this->hasCustomStartPosition = true;
 	}
 
@@ -112,8 +109,6 @@ void KZCheckpointService::SetCheckpoint()
 	Checkpoint cp = {};
 	this->player->GetOrigin(&cp.origin);
 	this->player->GetAngles(&cp.angles);
-	cp.slopeDropHeight = pawn->m_flSlopeDropHeight();
-	cp.slopeDropOffset = pawn->m_flSlopeDropOffset();
 	if (this->player->GetMoveServices())
 	{
 		cp.ladderNormal = this->player->GetMoveServices()->m_vecLadderNormal();
@@ -208,8 +203,6 @@ void KZCheckpointService::DoTeleport(const Checkpoint cp)
 	this->undoTeleportData.teleportInBhopTrigger = this->player->triggerService->InBhopTriggers();
 	this->undoTeleportData.origin = currentOrigin;
 	this->player->GetAngles(&this->undoTeleportData.angles);
-	this->undoTeleportData.slopeDropHeight = pawn->m_flSlopeDropHeight();
-	this->undoTeleportData.slopeDropOffset = pawn->m_flSlopeDropOffset();
 	if (this->player->GetMoveServices())
 	{
 		this->undoTeleportData.ladderNormal = this->player->GetMoveServices()->m_vecLadderNormal();
@@ -237,9 +230,6 @@ void KZCheckpointService::DoTeleport(const Checkpoint cp)
 	{
 		this->player->Teleport(NULL, &cp.angles, &NULL_VECTOR);
 	}
-	pawn->m_flSlopeDropHeight(cp.slopeDropHeight);
-	pawn->m_flSlopeDropOffset(cp.slopeDropOffset);
-
 	CBaseEntity *groundEntity = static_cast<CBaseEntity *>(GameEntitySystem()->GetEntityInstance(cp.groundEnt));
 	// Don't attach the player onto moving platform (because they might not be there anymore). World doesn't move
 	// though.
@@ -373,8 +363,6 @@ void KZCheckpointService::SetStartPosition()
 	this->hasCustomStartPosition = true;
 	this->player->GetOrigin(&this->customStartPosition.origin);
 	this->player->GetAngles(&this->customStartPosition.angles);
-	this->customStartPosition.slopeDropHeight = pawn->m_flSlopeDropHeight();
-	this->customStartPosition.slopeDropOffset = pawn->m_flSlopeDropOffset();
 	this->customStartPosition.groundEnt = pawn->m_hGroundEntity();
 	bool hasMapName = false;
 	CUtlString currentMap = g_pKZUtils->GetCurrentMapName(&hasMapName);
@@ -389,8 +377,6 @@ void KZCheckpointService::SetStartPosition()
 		startPos->FindOrCreateMember("ladderNormal")->SetVector(this->customStartPosition.ladderNormal);
 		startPos->FindOrCreateMember("onLadder")->SetBool(this->customStartPosition.onLadder);
 		startPos->FindOrCreateMember("groundEnt")->SetUInt(this->customStartPosition.groundEnt.ToInt());
-		startPos->FindOrCreateMember("slopeDropOffset")->SetFloat(this->customStartPosition.slopeDropOffset);
-		startPos->FindOrCreateMember("slopeDropHeight")->SetFloat(this->customStartPosition.slopeDropHeight);
 
 		player->optionService->SetPreferenceTable("startPositions", ssps);
 	}

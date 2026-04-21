@@ -20,8 +20,6 @@ public:
 		Vector ladderNormal;
 		bool onLadder {};
 		CHandle<CBaseEntity> groundEnt;
-		f32 slopeDropOffset;
-		f32 slopeDropHeight;
 	};
 
 	// UndoTeleport stuff

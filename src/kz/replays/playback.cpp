@@ -40,7 +40,6 @@ namespace KZ::replaysystem::playback
 
 		moveServices->m_flDuckSpeed = tickData->pre.duckSpeed;
 		moveServices->m_flDuckAmount = tickData->pre.duckAmount;
-		moveServices->m_flDuckOffset = tickData->pre.duckOffset;
 		moveServices->m_flLastDuckTime = g_pKZUtils->GetServerGlobals()->curtime + tickData->pre.lastDuckTime - tickData->gameTime;
 		moveServices->m_bDucking = tickData->pre.replayFlags.ducking;
 		moveServices->m_bDucked = tickData->pre.replayFlags.ducked;
@@ -151,7 +150,6 @@ namespace KZ::replaysystem::playback
 
 		moveServices->m_flDuckSpeed = tickData->post.duckSpeed;
 		moveServices->m_flDuckAmount = tickData->post.duckAmount;
-		moveServices->m_flDuckOffset = tickData->post.duckOffset;
 		moveServices->m_flLastDuckTime = g_pKZUtils->GetServerGlobals()->curtime + tickData->post.lastDuckTime - tickData->gameTime;
 		moveServices->m_bDucking = tickData->post.replayFlags.ducking;
 		moveServices->m_bDucked = tickData->post.replayFlags.ducked;
@@ -423,7 +421,6 @@ namespace KZ::replaysystem::playback
 		auto moveServices = player->GetMoveServices();
 		moveServices->m_flDuckSpeed = tickData->post.duckSpeed;
 		moveServices->m_flDuckAmount = tickData->post.duckAmount;
-		moveServices->m_flDuckOffset = tickData->post.duckOffset;
 		moveServices->m_flLastDuckTime = g_pKZUtils->GetServerGlobals()->curtime + tickData->post.lastDuckTime - tickData->gameTime;
 		moveServices->m_bDucking = tickData->post.replayFlags.ducking;
 		moveServices->m_bDucked = tickData->post.replayFlags.ducked;

@@ -126,7 +126,6 @@ void KZRecordingService::RecordTickData_PhysicsSimulate()
 	this->currentTickData.pre.jumpPressedTime = movementServices->m_LegacyJump().m_flJumpPressedTime;
 	this->currentTickData.pre.duckSpeed = movementServices->m_flDuckSpeed;
 	this->currentTickData.pre.duckAmount = movementServices->m_flDuckAmount;
-	this->currentTickData.pre.duckOffset = movementServices->m_flDuckOffset;
 	this->currentTickData.pre.lastDuckTime = movementServices->m_flLastDuckTime;
 	this->currentTickData.pre.replayFlags.ducking = movementServices->m_bDucking;
 	this->currentTickData.pre.replayFlags.ducked = movementServices->m_bDucked;
@@ -178,7 +177,6 @@ void KZRecordingService::RecordTickData_PhysicsSimulatePost()
 	this->currentTickData.post.jumpPressedTime = movementServices->m_LegacyJump().m_flJumpPressedTime;
 	this->currentTickData.post.duckSpeed = movementServices->m_flDuckSpeed;
 	this->currentTickData.post.duckAmount = movementServices->m_flDuckAmount;
-	this->currentTickData.post.duckOffset = movementServices->m_flDuckOffset;
 	this->currentTickData.post.lastDuckTime = movementServices->m_flLastDuckTime;
 	this->currentTickData.post.replayFlags.ducking = movementServices->m_bDucking;
 	this->currentTickData.post.replayFlags.ducked = movementServices->m_bDucked;
