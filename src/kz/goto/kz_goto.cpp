@@ -6,8 +6,6 @@
 #include "../language/kz_language.h"
 #include "../timer/kz_timer.h"
 
-static_global const Vector NULL_VECTOR = Vector(0, 0, 0);
-
 void KZGotoService::Init() {}
 
 void KZGotoService::Reset() {}
@@ -104,7 +102,7 @@ bool KZGotoService::GotoPlayer(const char *playerNamePart)
 	targetPlayer->GetOrigin(&origin);
 	targetPlayer->GetAngles(&angles);
 
-	this->player->GetPlayerPawn()->Teleport(&origin, &angles, &NULL_VECTOR);
+	this->player->Teleport(&origin, &angles, &NULL_VECTOR);
 	this->player->languageService->PrintChat(true, false, "Goto - Teleported", targetPlayer->GetName());
 	if (this->player->GetPlayerPawn()->m_Collision().m_CollisionGroup() != KZ_COLLISION_GROUP_STANDARD)
 	{
