@@ -15,6 +15,8 @@
 #define SUBTICK_SUBTICK_INPUTS_THRESHOLD   30
 #define SUBTICK_ZERO_WHEN_RATIO_THRESHOLD  0.9f
 
+CConVar<bool> kz_ac_subtick_debug("kz_ac_subtick_debug", FCVAR_CHEAT, "Enable subtick abuse detector debug messages", false);
+
 // Every command should have all button presses/releases accounted for in subtick moves.
 // Only cheats that modify buttons without updating subtick moves would fail this.
 static_global bool VerifyCommand(const PlayerCommand &cmd)
@@ -87,7 +89,10 @@ static_global bool HasExcessiveSubtickMovesWithAngles(const PlayerCommand &cmd)
 			numSuspicious++;
 			if (numSuspicious >= 2)
 			{
-				META_CONPRINTF("Suspicious subtick moves with angles detected in command %d: %s\n", cmd.cmdNum, cmd.DebugString().c_str());
+				if (kz_ac_subtick_debug.GetBool())
+				{
+					META_CONPRINTF("Suspicious subtick moves with angles detected in command %d: %s\n", cmd.cmdNum, cmd.DebugString().c_str());
+				}
 				return true;
 			}
 		}
