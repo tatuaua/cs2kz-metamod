@@ -102,7 +102,7 @@ bool KZGotoService::GotoPlayer(const char *playerNamePart)
 	targetPlayer->GetOrigin(&origin);
 	targetPlayer->GetAngles(&angles);
 
-	this->player->Teleport(&origin, &angles, &NULL_VECTOR);
+	this->player->Teleport(&origin, &angles, &vec3_origin);
 	this->player->languageService->PrintChat(true, false, "Goto - Teleported", targetPlayer->GetName());
 	if (this->player->GetPlayerPawn()->m_Collision().m_CollisionGroup() != KZ_COLLISION_GROUP_STANDARD)
 	{
