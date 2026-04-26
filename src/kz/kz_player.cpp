@@ -143,7 +143,7 @@ void KZPlayer::OnPlayerActive()
 
 	if (!this->IsFakeClient() && !this->IsCSTV())
 	{
-		this->languageService->PrintChat(true, true, "Beta Join Warning");
+		this->languageService->PrintChat(true, false, "Beta Join Warning");
 	}
 }
 
