@@ -140,6 +140,11 @@ void KZPlayer::OnPlayerActive()
 
 	this->optionService->OnPlayerActive();
 	this->recordingService->EnsureCircularRecorderInitialized();
+
+	if (!this->IsFakeClient() && !this->IsCSTV())
+	{
+		this->languageService->PrintChat(true, false, "Beta Join Warning");
+	}
 }
 
 void KZPlayer::OnPlayerFullyConnect()
