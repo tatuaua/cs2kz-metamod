@@ -498,6 +498,10 @@
 		"ko"		"중앙 패널 표시를 전환합니다."
 		"lv"		"Ieslēgt/izslēgt centrālā paneļa attēlošanu."
 	}
+	"Command Description - kz_panel_compact"
+	{
+		"en"		"Toggle compact centre panel (shows only time and speed)."
+	}
 	"Command Description - kz_jsbroadcast"
 	{
 		"en"		"Change jumpstats minimum threshold for broadcasting."

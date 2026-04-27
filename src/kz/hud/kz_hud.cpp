@@ -26,6 +26,7 @@ static_global class KZOptionServiceEventListener_HUD : public KZOptionServiceEve
 	virtual void OnPlayerPreferencesLoaded(KZPlayer *player)
 	{
 		player->hudService->ResetShowPanel();
+		player->hudService->ResetCompactPanel();
 	}
 } optionEventListener;
 
@@ -38,6 +39,7 @@ void KZHUDService::Init()
 void KZHUDService::Reset()
 {
 	this->showPanel = this->player->optionService->GetPreferenceBool("showPanel", true);
+	this->compactPanel = this->player->optionService->GetPreferenceBool("compactPanel", false);
 	this->timerStoppedTime = {};
 	this->currentTimeWhenTimerStopped = {};
 }
@@ -156,13 +158,13 @@ void KZHUDService::DrawPanels(KZPlayer *player, KZPlayer *target)
 	std::string speedText = player->hudService->GetSpeedText(language);
 
 	// clang-format off
-	std::string centerText = KZLanguageService::PrepareMessageWithLang(language, "HUD - Center Text", 
+	bool compact = target->hudService->IsCompactPanel();
+	std::string centerText = KZLanguageService::PrepareMessageWithLang(language, compact ? "HUD - Center Text (Compact)" : "HUD - Center Text", 
 		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
 	std::string alertText = KZLanguageService::PrepareMessageWithLang(language, "HUD - Alert Text", 
 		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
-	std::string htmlText = KZLanguageService::PrepareMessageWithLang(language, "HUD - Html Center Text",
+	std::string htmlText = KZLanguageService::PrepareMessageWithLang(language, compact ? "HUD - Html Center Text (Compact)" : "HUD - Html Center Text",
 		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
-
 	// clang-format on
 
 	centerText = centerText.substr(0, centerText.find_last_not_of('\n') + 1);
@@ -187,6 +189,11 @@ void KZHUDService::DrawPanels(KZPlayer *player, KZPlayer *target)
 void KZHUDService::ResetShowPanel()
 {
 	this->showPanel = this->player->optionService->GetPreferenceBool("showPanel", true);
+}
+
+void KZHUDService::ResetCompactPanel()
+{
+	this->compactPanel = this->player->optionService->GetPreferenceBool("compactPanel", false);
 }
 
 void KZHUDService::TogglePanel()
@@ -222,6 +229,12 @@ void KZTimerServiceEventListener_HUD::OnTimerEndPost(KZPlayer *player, u32 cours
 	player->hudService->OnTimerStopped(time);
 }
 
+void KZHUDService::ToggleCompactPanel()
+{
+	this->compactPanel = !this->compactPanel;
+	this->player->optionService->SetPreferenceBool("compactPanel", this->compactPanel);
+}
+
 SCMD(kz_panel, SCFL_HUD)
 {
 	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
@@ -233,6 +246,21 @@ SCMD(kz_panel, SCFL_HUD)
 	else
 	{
 		player->languageService->PrintChat(true, false, "HUD Option - Info Panel - Disable");
+	}
+	return MRES_SUPERCEDE;
+}
+
+SCMD(kz_panel_compact, SCFL_HUD)
+{
+	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
+	player->hudService->ToggleCompactPanel();
+	if (player->hudService->IsCompactPanel())
+	{
+		player->languageService->PrintChat(true, false, "HUD Option - Compact Panel - Enable");
+	}
+	else
+	{
+		player->languageService->PrintChat(true, false, "HUD Option - Compact Panel - Disable");
 	}
 	return MRES_SUPERCEDE;
 }
