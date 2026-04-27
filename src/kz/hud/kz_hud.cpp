@@ -157,14 +157,15 @@ void KZHUDService::DrawPanels(KZPlayer *player, KZPlayer *target)
 	std::string timerText = player->hudService->GetTimerText(language);
 	std::string speedText = player->hudService->GetSpeedText(language);
 
-	// clang-format off
 	bool compact = target->hudService->IsCompactPanel();
-	std::string centerText = KZLanguageService::PrepareMessageWithLang(language, compact ? "HUD - Center Text (Compact)" : "HUD - Center Text", 
+	// clang-format off
+	std::string centerText = compact ? "" : KZLanguageService::PrepareMessageWithLang(language, "HUD - Center Text",
 		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
 	std::string alertText = KZLanguageService::PrepareMessageWithLang(language, "HUD - Alert Text", 
 		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
-	std::string htmlText = KZLanguageService::PrepareMessageWithLang(language, compact ? "HUD - Html Center Text (Compact)" : "HUD - Html Center Text",
-		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
+	std::string htmlText = compact ? timerText + "<br>" + speedText
+		: KZLanguageService::PrepareMessageWithLang(language, "HUD - Html Center Text",
+			keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
 	// clang-format on
 
 	centerText = centerText.substr(0, centerText.find_last_not_of('\n') + 1);

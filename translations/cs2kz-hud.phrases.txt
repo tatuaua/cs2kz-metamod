@@ -199,45 +199,6 @@
 		"ko"		"{speed_text}<br>{key_text}"
 		"lv"		"{speed_text}<br>{key_text}"
 	}
-	"HUD - Center Text (Compact)"
-	{
-		// Compact mode: unused, timer + speed shown in HTML Center Text
-		"#format"	"key_text:s,checkpoint_text:s,timer_text:s,speed_text:s"
-		"en"		""
-		"chi"		""
-		"pl"		""
-		"ru"		""
-		"fi"		""
-		"sv"		""
-		"ua"		""
-		"tr"		""
-		"it"		""
-		"es"		""
-		"de"		""
-		"ko"		""
-		"lv"		""
-	}
-	"HUD - Html Center Text (Compact)"
-	{
-		// Compact mode:
-		// 01:23:45
-		// Speed: 234 (200)
-		"#format"	"key_text:s,checkpoint_text:s,timer_text:s,speed_text:s"
-		"en"		"{timer_text}<br>{speed_text}"
-		"chi"		"{timer_text}<br>{speed_text}"
-		"pl"		"{timer_text}<br>{speed_text}"
-		"ru"		"{timer_text}<br>{speed_text}"
-		"fi"		"{timer_text}<br>{speed_text}"
-		"sv"		"{timer_text}<br>{speed_text}"
-		"ua"		"{timer_text}<br>{speed_text}"
-		"tr"		"{timer_text}<br>{speed_text}"
-		"it"		"{timer_text}<br>{speed_text}"
-		"es"		"{timer_text}<br>{speed_text}"
-		"de"		"{timer_text}<br>{speed_text}"
-		"ko"		"{timer_text}<br>{speed_text}"
-		"lv"		"{timer_text}<br>{speed_text}"
-	}
-
 	"HUD - HTML Panel Disabled"
 	{
 		"en"		"Panel disabled."
