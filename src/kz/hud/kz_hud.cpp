@@ -163,7 +163,7 @@ void KZHUDService::DrawPanels(KZPlayer *player, KZPlayer *target)
 		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
 	std::string alertText = KZLanguageService::PrepareMessageWithLang(language, "HUD - Alert Text", 
 		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
-	std::string htmlText = compact ? timerText + "<br>" + speedText
+	std::string htmlText = compact ? (timerText.empty() ? speedText : timerText + "<br>" + speedText)
 		: KZLanguageService::PrepareMessageWithLang(language, "HUD - Html Center Text",
 			keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
 	// clang-format on
@@ -239,6 +239,27 @@ void KZHUDService::ToggleCompactPanel()
 SCMD(kz_panel, SCFL_HUD)
 {
 	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
+	if (args->ArgC() >= 2)
+	{
+		if (KZ_STREQI(args->Arg(1), "compact"))
+		{
+			player->hudService->ToggleCompactPanel();
+			if (player->hudService->IsCompactPanel())
+			{
+				player->languageService->PrintChat(true, false, "HUD Option - Compact Panel - Enable");
+			}
+			else
+			{
+				player->languageService->PrintChat(true, false, "HUD Option - Compact Panel - Disable");
+			}
+			return MRES_SUPERCEDE;
+		}
+		else
+		{
+			player->languageService->PrintChat(true, false, "Panel Command Usage");
+			return MRES_SUPERCEDE;
+		}
+	}
 	player->hudService->TogglePanel();
 	if (player->hudService->IsShowingPanel())
 	{
@@ -247,21 +268,6 @@ SCMD(kz_panel, SCFL_HUD)
 	else
 	{
 		player->languageService->PrintChat(true, false, "HUD Option - Info Panel - Disable");
-	}
-	return MRES_SUPERCEDE;
-}
-
-SCMD(kz_panel_compact, SCFL_HUD)
-{
-	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
-	player->hudService->ToggleCompactPanel();
-	if (player->hudService->IsCompactPanel())
-	{
-		player->languageService->PrintChat(true, false, "HUD Option - Compact Panel - Enable");
-	}
-	else
-	{
-		player->languageService->PrintChat(true, false, "HUD Option - Compact Panel - Disable");
 	}
 	return MRES_SUPERCEDE;
 }

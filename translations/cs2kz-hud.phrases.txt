@@ -256,4 +256,8 @@
 	{
 		"en"		"{grey}Compact panel disabled."
 	}
+	"Panel Command Usage"
+	{
+		"en"		"{grey}Usage: {default}kz_panel <compact>{grey}."
+	}
 }
