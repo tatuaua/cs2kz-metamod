@@ -26,7 +26,6 @@ static_global class KZOptionServiceEventListener_HUD : public KZOptionServiceEve
 	virtual void OnPlayerPreferencesLoaded(KZPlayer *player)
 	{
 		player->hudService->ResetShowPanel();
-		player->hudService->ResetCompactPanel();
 	}
 } optionEventListener;
 
@@ -39,7 +38,6 @@ void KZHUDService::Init()
 void KZHUDService::Reset()
 {
 	this->showPanel = this->player->optionService->GetPreferenceBool("showPanel", true);
-	this->compactPanel = this->player->optionService->GetPreferenceBool("compactPanel", false);
 	this->timerStoppedTime = {};
 	this->currentTimeWhenTimerStopped = {};
 }
@@ -192,11 +190,6 @@ void KZHUDService::ResetShowPanel()
 	this->showPanel = this->player->optionService->GetPreferenceBool("showPanel", true);
 }
 
-void KZHUDService::ResetCompactPanel()
-{
-	this->compactPanel = this->player->optionService->GetPreferenceBool("compactPanel", false);
-}
-
 void KZHUDService::TogglePanel()
 {
 	this->showPanel = !this->showPanel;
@@ -230,10 +223,14 @@ void KZTimerServiceEventListener_HUD::OnTimerEndPost(KZPlayer *player, u32 cours
 	player->hudService->OnTimerStopped(time);
 }
 
+bool KZHUDService::IsCompactPanel()
+{
+	return this->player->optionService->GetPreferenceBool("compactPanel");
+}
+
 void KZHUDService::ToggleCompactPanel()
 {
-	this->compactPanel = !this->compactPanel;
-	this->player->optionService->SetPreferenceBool("compactPanel", this->compactPanel);
+	this->player->optionService->SetPreferenceBool("compactPanel", !this->IsCompactPanel());
 }
 
 SCMD(kz_panel, SCFL_HUD)

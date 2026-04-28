@@ -13,7 +13,6 @@ private:
 	bool fromDuckbug {};
 	bool crouchJumping {};
 	bool showPanel {};
-	bool compactPanel {};
 	f64 timerStoppedTime {};
 	f64 currentTimeWhenTimerStopped {};
 
@@ -26,7 +25,6 @@ public:
 
 	void ResetShowPanel();
 	void TogglePanel();
-	void ResetCompactPanel();
 	void ToggleCompactPanel();
 
 	void OnPhysicsSimulate()
@@ -71,10 +69,7 @@ public:
 		return this->showPanel;
 	}
 
-	bool IsCompactPanel()
-	{
-		return this->compactPanel;
-	}
+	bool IsCompactPanel();
 
 	void OnTimerStopped(f64 currentTimeWhenTimerStopped);
 
