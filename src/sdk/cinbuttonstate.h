@@ -3,7 +3,8 @@
 #include "common.h"
 #include "utils/schema.h"
 
-enum EInButtonState : uint64_t
+#ifndef IDA_IGNORE
+enum EInButtonState : unsigned int
 {
 	IN_BUTTON_UP = 0x0,
 	IN_BUTTON_DOWN = 0x1,
@@ -99,3 +100,4 @@ public:
 		return CInButtonState::IsButtonPressed(this->m_pButtonStates, button, onlyDown);
 	}
 };
+#endif

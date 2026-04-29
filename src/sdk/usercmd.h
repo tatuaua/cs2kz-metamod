@@ -1,6 +1,7 @@
 #pragma once
 #include "common.h"
 #include "cs_usercmd.pb.h"
+#include "cinbuttonstate.h"
 class CSGOUserCmdPB;
 
 class CUserCmdBase
