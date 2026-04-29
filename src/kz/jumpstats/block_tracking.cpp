@@ -5,6 +5,7 @@
 
 #include "kz_jumpstats.h"
 #include "sdk/tracefilter.h"
+#include "sdk/navphysicsinterface.h"
 #include "utils/utils.h"
 
 // ============================================================
@@ -22,7 +23,7 @@ static bool TraceHullPosition(KZPlayer *player, const Vector &start, const Vecto
 	trace_t tr;
 	bbox_t bounds = {mins, maxs};
 	CTraceFilterPlayerMovementCS filter(pawn);
-	g_pKZUtils->TracePlayerBBox(start, end, bounds, &filter, tr);
+	INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), start, end, &filter, &tr);
 	if (tr.DidHit())
 	{
 		position = tr.m_vEndPos;
@@ -40,9 +41,8 @@ static bool TraceRayPosition(KZPlayer *player, const Vector &start, const Vector
 		return false;
 	}
 	trace_t tr;
-	bbox_t bounds({vec3_origin, vec3_origin});
 	CTraceFilterPlayerMovementCS filter(pawn);
-	g_pKZUtils->TracePlayerBBox(start, end, bounds, &filter, tr);
+	INavPhysicsInterface::TraceLine(start, end, &filter, &tr);
 	if (tr.DidHit())
 	{
 		position = tr.m_vEndPos;
@@ -60,9 +60,8 @@ static bool TraceRayPositionNormal(KZPlayer *player, const Vector &start, const 
 		return false;
 	}
 	trace_t tr;
-	bbox_t bounds({vec3_origin, vec3_origin});
 	CTraceFilterPlayerMovementCS filter(pawn);
-	g_pKZUtils->TracePlayerBBox(start, end, bounds, &filter, tr);
+	INavPhysicsInterface::TraceLine(start, end, &filter, &tr);
 	if (tr.DidHit())
 	{
 		position = tr.m_vEndPos;

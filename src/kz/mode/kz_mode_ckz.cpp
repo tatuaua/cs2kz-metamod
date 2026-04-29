@@ -5,6 +5,7 @@
 #include "utils/gameconfig.h"
 #include "sdk/usercmd.h"
 #include "sdk/tracefilter.h"
+#include "sdk/navphysicsinterface.h"
 #include "sdk/entity/cbasetrigger.h"
 
 KZClassicModePlugin g_KZClassicModePlugin;
@@ -576,7 +577,7 @@ void KZClassicModeService::SlopeFix()
 	this->player->GetBBoxBounds(&bounds);
 	trace_t trace;
 
-	g_pKZUtils->TracePlayerBBox(this->player->currentMoveData->m_vecAbsOrigin, ground, bounds, &filter, trace);
+	INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), this->player->currentMoveData->m_vecAbsOrigin, ground, &filter, &trace);
 
 	// Doesn't hit anything, fall back to the original ground
 	if (trace.m_bStartInSolid || trace.m_flFraction == 1.0f)
@@ -652,13 +653,13 @@ static_function bool IsValidMovementTrace(trace_t &tr, bbox_t bounds, CTraceFilt
 	}
 
 	// Do an unswept trace and a backward trace just to be sure.
-	g_pKZUtils->TracePlayerBBox(tr.m_vEndPos, tr.m_vEndPos, bounds, filter, stuck);
+	INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), tr.m_vEndPos, tr.m_vEndPos, filter, &stuck);
 	if (stuck.m_bStartInSolid || stuck.m_flFraction < 1.0f - FLT_EPSILON)
 	{
 		return false;
 	}
 
-	g_pKZUtils->TracePlayerBBox(tr.m_vEndPos, tr.m_vStartPos, bounds, filter, stuck);
+	INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), tr.m_vEndPos, tr.m_vStartPos, filter, &stuck);
 	// For whatever reason if you can hit something in only one direction and not the other way around.
 	// Only happens since Call to Arms update, so this fraction check is commented out until it is fixed.
 	if (stuck.m_bStartInSolid /*|| stuck.m_flFraction < 1.0f - FLT_EPSILON*/)
@@ -718,7 +719,7 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t *pFirstTr
 		}
 		else
 		{
-			g_pKZUtils->TracePlayerBBox(start, end, bounds, &filter, pm);
+			INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), start, end, &filter, &pm);
 			if (end == start)
 			{
 				continue;
@@ -759,7 +760,8 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t *pFirstTr
 									continue;
 								}
 								trace_t test;
-								g_pKZUtils->TracePlayerBBox(start + offsetDirection * RAMP_PIERCE_DISTANCE, start, bounds, &filter, test);
+								INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), start + offsetDirection * RAMP_PIERCE_DISTANCE,
+																 start, &filter, &test);
 								if (!IsValidMovementTrace(test, bounds, &filter))
 								{
 									continue;
@@ -770,8 +772,9 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t *pFirstTr
 							bool hitNewPlane {};
 							for (ratio = 0.25f; ratio <= 1.0f; ratio += 0.25f)
 							{
-								g_pKZUtils->TracePlayerBBox(start + offsetDirection * RAMP_PIERCE_DISTANCE * ratio,
-															end + offsetDirection * RAMP_PIERCE_DISTANCE * ratio, bounds, &filter, pierce);
+								INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs),
+																 start + offsetDirection * RAMP_PIERCE_DISTANCE * ratio,
+																 end + offsetDirection * RAMP_PIERCE_DISTANCE * ratio, &filter, &pierce);
 								if (!IsValidMovementTrace(pierce, bounds, &filter))
 								{
 									continue;
@@ -794,7 +797,7 @@ void KZClassicModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t *pFirstTr
 							{
 								// Trace back to the original end point to find its normal.
 								trace_t test;
-								g_pKZUtils->TracePlayerBBox(pierce.m_vEndPos, end, bounds, &filter, test);
+								INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), pierce.m_vEndPos, end, &filter, &test);
 								pm = pierce;
 								pm.m_vStartPos = start;
 								pm.m_flFraction = Clamp((pierce.m_vEndPos - pierce.m_vStartPos).Length() / (end - start).Length(), 0.0f, 1.0f);
@@ -924,7 +927,9 @@ void KZClassicModeService::OnTryPlayerMovePost(Vector *pFirstDest, trace_t *pFir
 		if (this->tpmTriggerFixOrigins.Count() > 1)
 		{
 			bbox_t bounds;
-			this->player->GetBBoxBounds(&bounds);
+			// We need to shrink the bounds a bit to prevent touching triggers that we shouldn't be touching when doing triggerfix.
+			bbox_t offset = {{0.03125f, 0.03125f, 0.0f}, {-0.03125f, -0.03125f, 0.0f}};
+			this->player->GetBBoxBounds(&bounds, &offset);
 			for (int i = 0; i < this->tpmTriggerFixOrigins.Count() - 1; i++)
 			{
 				this->player->TouchTriggersAlongPath(this->tpmTriggerFixOrigins[i], this->tpmTriggerFixOrigins[i + 1], bounds);
@@ -959,7 +964,7 @@ void KZClassicModeService::OnCategorizePosition(bool bStayOnGround)
 	groundOrigin = origin;
 	groundOrigin.z -= 2.0f;
 
-	g_pKZUtils->TracePlayerBBox(origin, groundOrigin, bounds, &filter, trace);
+	INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), origin, groundOrigin, &filter, &trace);
 
 	if (trace.m_flFraction == 1.0f)
 	{
@@ -971,7 +976,7 @@ void KZClassicModeService::OnCategorizePosition(bool bStayOnGround)
 		origin += this->lastValidPlane * 0.0625f;
 		groundOrigin = origin;
 		groundOrigin.z -= 2.0f;
-		g_pKZUtils->TracePlayerBBox(origin, groundOrigin, bounds, &filter, trace);
+		INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), origin, groundOrigin, &filter, &trace);
 		if (trace.m_bStartInSolid)
 		{
 			return;

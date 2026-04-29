@@ -10,6 +10,7 @@
 #include "interfaces/interfaces.h"
 #include "igameeventsystem.h"
 #include "sdk/recipientfilters.h"
+#include "sdk/navphysicsinterface.h"
 #include "public/networksystem/inetworkmessages.h"
 #include "gametrace.h"
 
@@ -69,7 +70,6 @@ bool utils::Initialize(ISmmAPI *ismm, char *error, size_t maxlen)
 	}
 
 	bool sigResolved = true;
-	RESOLVE_SIG(g_pGameConfig, "TracePlayerBBox", TracePlayerBBox_t, TracePlayerBBox, sigResolved);
 	RESOLVE_SIG(g_pGameConfig, "GetLegacyGameEventListener", GetLegacyGameEventListener_t, GetLegacyGameEventListener, sigResolved);
 	RESOLVE_SIG(g_pGameConfig, "SnapViewAngles", SnapViewAngles_t, SnapViewAngles, sigResolved);
 	RESOLVE_SIG(g_pGameConfig, "EmitSound", EmitSoundFunc_t, EmitSound, sigResolved);
@@ -90,8 +90,8 @@ bool utils::Initialize(ISmmAPI *ismm, char *error, size_t maxlen)
 		Warning("%s\n", error);
 		return false;
 	}
-	g_pKZUtils = new KZUtils(TracePlayerBBox, GetLegacyGameEventListener, SnapViewAngles, EmitSound, SwitchTeam, SetPawn, CreateEntityByName,
-							 DispatchSpawn, RemoveEntity, DebugDrawMesh, CreateBot, SetOrAddAttributeValueByName, SetModel, DecalTrace);
+	g_pKZUtils = new KZUtils(GetLegacyGameEventListener, SnapViewAngles, EmitSound, SwitchTeam, SetPawn, CreateEntityByName, DispatchSpawn,
+							 RemoveEntity, DebugDrawMesh, CreateBot, SetOrAddAttributeValueByName, SetModel, DecalTrace);
 
 	utils::UnlockConVars();
 	utils::UnlockConCommands();
@@ -471,7 +471,7 @@ bool utils::IsSpawnValid(const Vector &origin)
 	filter.m_nObjectSetMask = RNQUERY_OBJECTS_ALL;
 	filter.m_nInteractsAs = 0x40000;
 	trace_t tr;
-	g_pKZUtils->TracePlayerBBox(origin, origin, bounds, &filter, tr);
+	INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), origin, origin, &filter, &tr);
 	if (tr.m_flFraction != 1.0 || tr.m_bStartInSolid)
 	{
 		return false;
@@ -539,10 +539,9 @@ bool utils::CanSeeBox(Vector origin, Vector mins, Vector maxs)
 		maxs[i] -= 0.03125;
 		traceDest[i] = Clamp(origin[i], mins[i], maxs[i]);
 	}
-	bbox_t bounds {};
 	CTraceFilter filter(MASK_PLAYERSOLID, COLLISION_GROUP_PLAYER_MOVEMENT, false);
 	trace_t trace;
-	g_pKZUtils->TracePlayerBBox(origin, traceDest, bounds, &filter, trace);
+	INavPhysicsInterface::TraceLine(origin, traceDest, &filter, &trace);
 
 	return !trace.DidHit();
 }
@@ -619,7 +618,7 @@ bool utils::FindValidPositionForTrigger(CBaseTrigger *trigger, Vector &originDes
 		filter.m_nObjectSetMask = RNQUERY_OBJECTS_ALL;
 		filter.m_nInteractsAs = 0x40000;
 		trace_t tr;
-		g_pKZUtils->TracePlayerBBox(center, bottomCenter, bounds, &filter, tr);
+		INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), center, bottomCenter, &filter, &tr);
 		originDest = tr.m_vEndPos;
 		anglesDest = vec3_angle;
 		return true;

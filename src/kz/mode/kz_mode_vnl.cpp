@@ -2,6 +2,7 @@
 #include "utils/interfaces.h"
 #include "sdk/usercmd.h"
 #include "sdk/tracefilter.h"
+#include "sdk/navphysicsinterface.h"
 #include "sdk/entity/cbasetrigger.h"
 
 const char *KZVanillaModeService::GetModeName()
@@ -172,7 +173,7 @@ void KZVanillaModeService::OnTryPlayerMove(Vector *pFirstDest, trace_t *pFirstTr
 #if 0
 			this->player->GetMoveServices()->m_nTraceCount++;
 #endif
-			g_pKZUtils->TracePlayerBBox(origin, end, bounds, &filter, pm);
+			INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), origin, end, &filter, &pm);
 		}
 
 		if (allFraction == 0.0f)
@@ -351,7 +352,9 @@ void KZVanillaModeService::OnTryPlayerMovePost(Vector *pFirstDest, trace_t *pFir
 		if (this->tpmTriggerFixOrigins.Count() > 1)
 		{
 			bbox_t bounds;
-			this->player->GetBBoxBounds(&bounds);
+			// We need to shrink the bounds a bit to prevent touching triggers that we shouldn't be touching when doing triggerfix.
+			bbox_t offset = {{0.03125f, 0.03125f, 0.0f}, {-0.03125f, -0.03125f, 0.0f}};
+			this->player->GetBBoxBounds(&bounds, &offset);
 			for (int i = 0; i < this->tpmTriggerFixOrigins.Count() - 1; i++)
 			{
 				this->player->TouchTriggersAlongPath(this->tpmTriggerFixOrigins[i], this->tpmTriggerFixOrigins[i + 1], bounds);

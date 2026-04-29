@@ -95,7 +95,7 @@ public:
 	// It is not recommended use this to change the angle inside movement processing, it might not work!
 	virtual void SetAngles(const QAngle &angles);
 
-	virtual void GetBBoxBounds(bbox_t *bounds);
+	virtual void GetBBoxBounds(bbox_t *bounds, bbox_t *offset = nullptr);
 
 	virtual TurnState GetTurning();
 

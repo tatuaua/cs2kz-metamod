@@ -6,6 +6,7 @@
 #include "kz/style/kz_style.h"
 #include "kz/timer/kz_timer.h"
 #include "kz/noclip/kz_noclip.h"
+#include "sdk/navphysicsinterface.h"
 
 void KZTriggerService::Reset()
 {
@@ -154,7 +155,8 @@ void KZTriggerService::TouchTriggersAlongPath(const Vector &start, const Vector 
 	}
 	CTraceFilterHitAllTriggers filter;
 	trace_t tr;
-	g_pKZUtils->TracePlayerBBox(start, end, bounds, &filter, tr);
+	Ray_t ray(bounds.mins, bounds.maxs);
+	INavPhysicsInterface::TraceShape(ray, start, end, &filter, &tr);
 	FOR_EACH_VEC(filter.hitTriggerHandles, i)
 	{
 		CEntityHandle handle = filter.hitTriggerHandles[i];
@@ -194,7 +196,7 @@ void KZTriggerService::UpdateTriggerTouchList()
 	this->player->GetBBoxBounds(&bounds);
 	CTraceFilterHitAllTriggers filter;
 	trace_t tr;
-	g_pKZUtils->TracePlayerBBox(origin, origin, bounds, &filter, tr);
+	INavPhysicsInterface::TraceShape(Ray_t(bounds.mins, bounds.maxs), origin, origin, &filter, &tr);
 
 	FOR_EACH_VEC_BACK(this->triggerTrackers, i)
 	{

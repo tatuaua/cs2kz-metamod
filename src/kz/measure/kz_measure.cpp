@@ -5,6 +5,7 @@
 
 #include "sdk/entity/cparticlesystem.h"
 #include "sdk/tracefilter.h"
+#include "sdk/navphysicsinterface.h"
 #include "entitykeyvalues.h"
 
 #define KZ_MEASURE_TIMEOUT      60.0f
@@ -168,11 +169,10 @@ KZMeasureService::MeasurePos KZMeasureService::GetLookAtPos(const Vector *overri
 	AngleVectors(angles, &forward);
 	Vector endPos = origin + forward * KZ_MEASURE_MAX_DISTANCE;
 	trace_t tr;
-	bbox_t bounds({vec3_origin, vec3_origin});
 
 	CTraceFilterPlayerMovementCS filter(pawn);
 
-	g_pKZUtils->TracePlayerBBox(origin, endPos, bounds, &filter, tr);
+	INavPhysicsInterface::TraceLine(origin, endPos, &filter, &tr);
 	if (tr.DidHit())
 	{
 		return {tr.m_vEndPos, tr.m_vHitNormal};

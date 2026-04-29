@@ -4,6 +4,7 @@
 #include "utils/simplecmds.h"
 #include "utils/utils.h"
 #include "sdk/tracefilter.h"
+#include "sdk/navphysicsinterface.h"
 #include "sdk/cglobalsymbol.h"
 #include "sdk/recipientfilters.h"
 
@@ -202,11 +203,10 @@ bool KZPaintService::TracePaint(trace_t &tr) const
 	AngleVectors(angles, &forward);
 	Vector endPos = origin + forward * KZ_PAINT_TRACE_DISTANCE;
 
-	bbox_t bounds({vec3_origin, vec3_origin});
 	CTraceFilterPlayerMovementCS filter(pawn);
 	filter.EnableInteractsExcludeLayer(LAYER_INDEX_CONTENTS_PLAYER_CLIP);
 	filter.EnableInteractsExcludeLayer(LAYER_INDEX_CONTENTS_PLAYER);
-	g_pKZUtils->TracePlayerBBox(origin, endPos, bounds, &filter, tr);
+	INavPhysicsInterface::TraceLine(origin, endPos, &filter, &tr);
 
 	return tr.DidHit();
 }

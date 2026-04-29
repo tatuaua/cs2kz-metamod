@@ -77,7 +77,6 @@ typedef IGameEventListener2 *GetLegacyGameEventListener_t(CPlayerSlot slot);
 typedef void SnapViewAngles_t(CBasePlayerPawn *pawn, const QAngle &angle);
 typedef CBaseEntity *FindEntityByClassname_t(CEntitySystem *, CEntityInstance *, const char *);
 typedef SndOpEventGuid_t EmitSoundFunc_t(IRecipientFilter &filter, CEntityIndex ent, const EmitSound_t &params);
-typedef void TracePlayerBBox_t(const Vector &start, const Vector &end, const bbox_t &bounds, CTraceFilter *filter, trace_t &pm);
 typedef void SwitchTeam_t(CCSPlayerController *controller, int team);
 typedef void SetPawn_t(CBasePlayerController *controller, CCSPlayerPawn *pawn, bool, bool, bool, bool);
 typedef CBaseEntity *CreateEntityByName_t(const char *className, int iForceEdictIndex);
@@ -122,18 +121,17 @@ namespace interfaces
 class KZUtils
 {
 public:
-	KZUtils(TracePlayerBBox_t *TracePlayerBBox, GetLegacyGameEventListener_t *GetLegacyGameEventListener, SnapViewAngles_t *SnapViewAngles,
-			EmitSoundFunc_t *EmitSound, SwitchTeam_t *SwitchTeam, SetPawn_t *SetPawn, CreateEntityByName_t *CreateEntityByName,
-			DispatchSpawn_t *DispatchSpawn, RemoveEntity_t *RemoveEntity, DebugDrawMesh_t *DebugDrawMesh, CreateBot_t *CreateBot,
+	KZUtils(GetLegacyGameEventListener_t *GetLegacyGameEventListener, SnapViewAngles_t *SnapViewAngles, EmitSoundFunc_t *EmitSound,
+			SwitchTeam_t *SwitchTeam, SetPawn_t *SetPawn, CreateEntityByName_t *CreateEntityByName, DispatchSpawn_t *DispatchSpawn,
+			RemoveEntity_t *RemoveEntity, DebugDrawMesh_t *DebugDrawMesh, CreateBot_t *CreateBot,
 			SetOrAddAttributeValueByName_t *SetOrAddAttributeValueByName, SetModel_t *SetModel, DecalTrace_t *DecalTrace)
-		: TracePlayerBBox(TracePlayerBBox), GetLegacyGameEventListener(GetLegacyGameEventListener), SnapViewAngles(SnapViewAngles),
-		  EmitSound(EmitSound), SwitchTeam(SwitchTeam), SetPawn(SetPawn), CreateEntityByName(CreateEntityByName), DispatchSpawn(DispatchSpawn),
-		  RemoveEntity(RemoveEntity), DebugDrawMesh(DebugDrawMesh), CreateBot(CreateBot), SetOrAddAttributeValueByName(SetOrAddAttributeValueByName),
-		  SetModel(SetModel), DecalTrace(DecalTrace)
+		: GetLegacyGameEventListener(GetLegacyGameEventListener), SnapViewAngles(SnapViewAngles), EmitSound(EmitSound), SwitchTeam(SwitchTeam),
+		  SetPawn(SetPawn), CreateEntityByName(CreateEntityByName), DispatchSpawn(DispatchSpawn), RemoveEntity(RemoveEntity),
+		  DebugDrawMesh(DebugDrawMesh), CreateBot(CreateBot), SetOrAddAttributeValueByName(SetOrAddAttributeValueByName), SetModel(SetModel),
+		  DecalTrace(DecalTrace)
 	{
 	}
 
-	TracePlayerBBox_t *const TracePlayerBBox;
 	GetLegacyGameEventListener_t *const GetLegacyGameEventListener;
 	SnapViewAngles_t *const SnapViewAngles;
 	EmitSoundFunc_t *const EmitSound;
