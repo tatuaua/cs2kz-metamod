@@ -81,4 +81,10 @@
 
 	"racingCoordinatorUrl"		""
 	"racingSecret"				""
+
+	// Whether to write CS2KZ log output to addons/cs2kz/logs/cs2kz.log.
+	"logToFile"					"true"
+
+	// Whether to emit KZDebug log messages.
+	"debugLogging"				"false"
 }

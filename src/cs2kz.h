@@ -1,12 +1,27 @@
 #pragma once
 
 #include <string_view>
+#include <cstdio>
 
 #include "common.h"
 #include "version_gen.h"
+#include "tier0/logging.h"
 
 class KZPlugin;
 extern KZPlugin g_KZPlugin;
+
+class KZLoggingListener : public ILoggingListener
+{
+public:
+	void Log(const LoggingContext_t *pContext, const tchar *pMessage) override;
+	void OpenFile();
+	void CloseFile();
+
+	bool m_debugEnabled = false;
+
+private:
+	FILE *m_pFile = nullptr;
+};
 
 class KZPlugin : public ISmmPlugin, public IMetamodListener
 {
@@ -65,6 +80,7 @@ public:
 	bool simulatingPhysics = false;
 	CGlobalVars serverGlobals;
 	bool unloading = false;
+	KZLoggingListener loggingListener;
 
 private:
 	void UpdateSelfMD5();

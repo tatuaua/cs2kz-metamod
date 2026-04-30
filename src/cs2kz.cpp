@@ -1,7 +1,10 @@
 #include "cs2kz.h"
 
+#include <ctime>
+
 #include "entity2/entitysystem.h"
 #include "steam/steam_gameserver.h"
+#include "filesystem.h"
 
 #include "sdk/cgameresourceserviceserver.h"
 #include "utils/utils.h"
@@ -42,10 +45,92 @@ CSteamGameServerAPIContext g_steamAPI;
 
 PLUGIN_EXPOSE(KZPlugin, g_KZPlugin);
 
+void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMessage)
+{
+	if (pContext->m_ChannelID != LOG_KZ)
+	{
+		return;
+	}
+	if (pContext->m_Severity == LS_DETAILED && !m_debugEnabled)
+	{
+		return;
+	}
+
+	const char *level = "INFO";
+	Color color(255, 255, 255, 255);
+
+	if (pContext->m_Severity >= LS_ERROR)
+	{
+		level = "ERROR";
+		color = Color(255, 80, 80, 255);
+	}
+	else if (pContext->m_Severity >= LS_WARNING)
+	{
+		level = "WARN";
+		color = Color(255, 220, 80, 255);
+	}
+	else if (pContext->m_Severity == LS_DETAILED)
+	{
+		level = "DEBUG";
+		color = Color(160, 160, 160, 255);
+	}
+
+	ConColorMsg(color, "[CS2KZ] [%s] %s", level, pMessage);
+	size_t msgLen = V_strlen(pMessage);
+	bool needsNewline = (msgLen == 0 || pMessage[msgLen - 1] != '\n');
+	if (needsNewline)
+	{
+		ConColorMsg(color, "\n");
+	}
+
+	if (m_pFile)
+	{
+		std::time_t t = std::time(nullptr);
+		std::tm tm{};
+#ifdef _WIN32
+		localtime_s(&tm, &t);
+#else
+		localtime_r(&t, &tm);
+#endif
+		char ts[32];
+		std::strftime(ts, sizeof(ts), "%Y-%m-%d %H:%M:%S", &tm);
+		fprintf(m_pFile, "[%s] [%s] %s%s", ts, level, pMessage, needsNewline ? "\n" : "");
+		fflush(m_pFile);
+	}
+}
+
+void KZLoggingListener::OpenFile()
+{
+	if (m_pFile)
+	{
+		return;
+	}
+	char dir[1024];
+	V_snprintf(dir, sizeof(dir), "%s/addons/cs2kz/logs", g_SMAPI->GetBaseDir());
+	V_FixSlashes(dir);
+	g_pFullFileSystem->CreateDirHierarchy(dir, nullptr);
+
+	char path[1024];
+	V_snprintf(path, sizeof(path), "%s/cs2kz.log", dir);
+	V_FixSlashes(path);
+	m_pFile = fopen(path, "a");
+}
+
+void KZLoggingListener::CloseFile()
+{
+	if (m_pFile)
+	{
+		fclose(m_pFile);
+		m_pFile = nullptr;
+	}
+}
+
 bool KZPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	setlocale(LC_ALL, "en_US.utf8");
 	PLUGIN_SAVEVARS();
+
+	LoggingSystem_RegisterLoggingListener(&this->loggingListener);
 
 	if (!utils::Initialize(ismm, error, maxlen))
 	{
@@ -79,6 +164,16 @@ bool KZPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool
 	KZ::mode::DisableReplicatedModeCvars();
 
 	KZOptionService::InitOptions();
+	if (KZOptionService::GetOptionInt("logToFile", true) != 0)
+	{
+		this->loggingListener.OpenFile();
+	}
+	this->loggingListener.m_debugEnabled = KZOptionService::GetOptionInt("debugLogging", false) != 0;
+	// Smoke test: emit one of each log level so the new logging system is exercised on boot.
+	KZDebug("Logging smoke test: debug message");
+	KZInfo("Logging smoke test: info message (version %s)", PLUGIN_FULL_VERSION);
+	KZWarn("Logging smoke test: warning message");
+	KZError("Logging smoke test: error message");
 	KZTipService::Init();
 	KZAnticheatService::Init();
 	if (late)
@@ -117,6 +212,8 @@ bool KZPlugin::Unload(char *error, size_t maxlen)
 	KZ::replaysystem::Cleanup();
 	KZAnticheatService::CleanupSvCheatsWatcher();
 	ConVar_Unregister();
+	LoggingSystem_UnregisterLoggingListener(&this->loggingListener);
+	this->loggingListener.CloseFile();
 	return true;
 }
 

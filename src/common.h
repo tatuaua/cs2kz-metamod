@@ -12,6 +12,8 @@
 
 #include "entity2/entitysystem.h"
 #include "tier0/dbg.h"
+#include "tier0/logging.h"
+#include "utils/logging.h"
 
 #define MAXPLAYERS 64
 
@@ -72,6 +74,14 @@ typedef double f64;
 #define KZ_FOURCC(a, b, c, d) ((u32)(((d) << 24) | ((c) << 16) | ((b) << 8) | (a)))
 
 #define VPROF_LEVEL 1
+
+// CS2KZ logging macros. Route through Valve's logging system; KZLoggingListener
+// in cs2kz.cpp handles console color and optional file output.
+#define KZDebug(fmt, ...) InternalMsg(LOG_KZ, LS_DETAILED, fmt, ##__VA_ARGS__)
+#define KZInfo(fmt, ...)  Log_Msg(LOG_KZ, fmt, ##__VA_ARGS__)
+#define KZWarn(fmt, ...)  Log_Warning(LOG_KZ, fmt, ##__VA_ARGS__)
+#define KZError(fmt, ...) Log_Error(LOG_KZ, fmt, ##__VA_ARGS__)
+
 
 // clang-format off
 #define VPROF_SCOPE_BEGIN_KZ(tag) do { VPROF_(tag, 1, "CS2KZ", false, 0)

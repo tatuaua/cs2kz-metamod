@@ -3,6 +3,7 @@
 #include "common.h"
 #include "cs2kz.h"
 #include "addresses.h"
+#include "logging.h"
 #include "gameconfig.h"
 #include "utils.h"
 #include "convar.h"
@@ -36,6 +37,8 @@
 CGameConfig *g_pGameConfig = NULL;
 KZUtils *g_pKZUtils = NULL;
 extern CSteamGameServerAPIContext g_steamAPI;
+
+DEFINE_LOGGING_CHANNEL_NO_TAGS(LOG_KZ, "CS2KZ", LCF_DO_NOT_ECHO, LV_DETAILED);
 
 #define SERVER_VERSION_KEY "ServerVersion="
 static_global u32 serverVersion;
