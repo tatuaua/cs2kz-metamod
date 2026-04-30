@@ -282,7 +282,7 @@ bool Recorder::WriteToFile()
 	FileHandle_t file = g_pFullFileSystem->Open(tempFilename, "wb", "GAME");
 	if (!file)
 	{
-		META_CONPRINTF("Failed to open replay file for writing: %s\n", tempFilename);
+		KZInfo("Failed to open replay file for writing: %s\n", tempFilename);
 		return false;
 	}
 
@@ -292,37 +292,37 @@ bool Recorder::WriteToFile()
 
 	if (kz_replay_recording_debug.Get())
 	{
-		META_CONPRINTF("kz_replay_recording_debug: Wrote replay header (%d bytes)\n", bytesWritten);
+		KZInfo("kz_replay_recording_debug: Wrote replay header (%d bytes)\n", bytesWritten);
 	}
 	bytesWritten += KZ::replaysystem::compression::WriteTickDataCompressed(file, this->tickData, this->subtickData);
 
 	if (kz_replay_recording_debug.Get())
 	{
-		META_CONPRINTF("kz_replay_recording_debug: Wrote tick data (%d bytes)\n", bytesWritten);
+		KZInfo("kz_replay_recording_debug: Wrote tick data (%d bytes)\n", bytesWritten);
 	}
 	bytesWritten += KZ::replaysystem::compression::WriteWeaponsCompressed(file, this->weaponTable);
 
 	if (kz_replay_recording_debug.Get())
 	{
-		META_CONPRINTF("kz_replay_recording_debug: Wrote weapons (%d bytes)\n", bytesWritten);
+		KZInfo("kz_replay_recording_debug: Wrote weapons (%d bytes)\n", bytesWritten);
 	}
 	bytesWritten += KZ::replaysystem::compression::WriteJumpsCompressed(file, this->jumps);
 
 	if (kz_replay_recording_debug.Get())
 	{
-		META_CONPRINTF("kz_replay_recording_debug: Wrote jumps (%d bytes)\n", bytesWritten);
+		KZInfo("kz_replay_recording_debug: Wrote jumps (%d bytes)\n", bytesWritten);
 	}
 	bytesWritten += KZ::replaysystem::compression::WriteEventsCompressed(file, this->rpEvents);
 
 	if (kz_replay_recording_debug.Get())
 	{
-		META_CONPRINTF("kz_replay_recording_debug: Wrote events (%d bytes)\n", bytesWritten);
+		KZInfo("kz_replay_recording_debug: Wrote events (%d bytes)\n", bytesWritten);
 	}
 	bytesWritten += KZ::replaysystem::compression::WriteCmdDataCompressed(file, this->cmdData, this->cmdSubtickData);
 
 	if (kz_replay_recording_debug.Get())
 	{
-		META_CONPRINTF("kz_replay_recording_debug: Wrote cmd data (%d bytes)\n", bytesWritten);
+		KZInfo("kz_replay_recording_debug: Wrote cmd data (%d bytes)\n", bytesWritten);
 	}
 	// Close the file before renaming
 	g_pFullFileSystem->Close(file);
@@ -330,14 +330,14 @@ bool Recorder::WriteToFile()
 	// Rename temp file to final name
 	if (!g_pFullFileSystem->RenameFile(tempFilename, finalFilename, "GAME"))
 	{
-		META_CONPRINTF("Failed to rename replay file from %s to %s\n", tempFilename, finalFilename);
+		KZInfo("Failed to rename replay file from %s to %s\n", tempFilename, finalFilename);
 		g_pFullFileSystem->RemoveFile(tempFilename, "GAME");
 		return false;
 	}
 
 	if (kz_replay_recording_debug.Get())
 	{
-		META_CONPRINTF("kz_replay_recording_debug: Saved replay to %s (%d bytes)\n", finalFilename, bytesWritten);
+		KZInfo("kz_replay_recording_debug: Saved replay to %s (%d bytes)\n", finalFilename, bytesWritten);
 	}
 
 	return true;
@@ -349,7 +349,7 @@ i32 Recorder::WriteHeader(FileHandle_t file)
 	std::string serialized;
 	if (!this->replayHeader.SerializeToString(&serialized))
 	{
-		META_CONPRINTF("[KZ] Failed to serialize replay header protobuf\n");
+		KZInfo("[KZ] Failed to serialize replay header protobuf\n");
 		return 0;
 	}
 	u32 size = static_cast<u32>(serialized.size());

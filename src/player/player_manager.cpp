@@ -152,7 +152,7 @@ void PlayerManager::OnLateLoad()
 {
 	if (!g_pNetworkServerService)
 	{
-		META_CONPRINTF("Warning: Plugin lateloaded but g_pNetworkServerService is not available. Auth callbacks will not be registered.\n");
+		KZInfo("Warning: Plugin lateloaded but g_pNetworkServerService is not available. Auth callbacks will not be registered.\n");
 		return;
 	}
 	if (g_pNetworkServerService->IsActiveInGame())
@@ -244,7 +244,7 @@ void PlayerManager::AuthorizeClient(CPlayerSlot slot)
 	this->RemoveFromAuthQueue(slot);
 
 	// Call the authorization hook - this invokes Player::OnAuthorized and subclass overrides
-	META_CONPRINTF("Player %s (slot %d) authenticated with SteamID %llu\n", player->GetName(), slot.Get(), player->GetSteamId64());
+	KZInfo("Player %s (slot %d) authenticated with SteamID %llu\n", player->GetName(), slot.Get(), player->GetSteamId64());
 	player->OnAuthorized();
 }
 

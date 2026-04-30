@@ -75,7 +75,7 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 		color = Color(160, 160, 160, 255);
 	}
 
-	ConColorMsg(color, "[CS2KZ] [%s] %s", level, pMessage);
+	ConColorMsg(color, "[%s] %s", level, pMessage);
 	size_t msgLen = V_strlen(pMessage);
 	bool needsNewline = (msgLen == 0 || pMessage[msgLen - 1] != '\n');
 	if (needsNewline)
@@ -169,11 +169,6 @@ bool KZPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool
 		this->loggingListener.OpenFile();
 	}
 	this->loggingListener.m_debugEnabled = KZOptionService::GetOptionInt("debugLogging", false) != 0;
-	// Smoke test: emit one of each log level so the new logging system is exercised on boot.
-	KZDebug("Logging smoke test: debug message");
-	KZInfo("Logging smoke test: info message (version %s)", PLUGIN_FULL_VERSION);
-	KZWarn("Logging smoke test: warning message");
-	KZError("Logging smoke test: error message");
 	KZTipService::Init();
 	KZAnticheatService::Init();
 	if (late)

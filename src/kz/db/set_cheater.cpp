@@ -88,7 +88,7 @@ void KZDatabaseService::Unban(u64 steamID64)
 		txn,
 		[steamID64](std::vector<ISQLQuery *> queries)
 		{
-			META_CONPRINTF("[KZ::DB] Player (%llu) has been unbanned.\n", steamID64);
+			KZInfo("[KZ::DB] Player (%llu) has been unbanned.\n", steamID64);
 		},
 		OnGenericTxnFailure
 	);

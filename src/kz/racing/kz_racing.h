@@ -340,7 +340,7 @@ private:
 
 		if (!success)
 		{
-			META_CONPRINTF("[KZ::Global] Failed to serialize message for event `%s`.\n", event);
+			KZInfo("[KZ::Global] Failed to serialize message for event `%s`.\n", event);
 		}
 
 		return success;

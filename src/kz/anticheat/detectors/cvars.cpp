@@ -109,7 +109,7 @@ static_function void ValidateQueriedCvar(CPlayerSlot nSlot, ECvarValueStatus eSt
 {
 	if (eStatus != ECvarValueStatus::ValueIntact)
 	{
-		META_CONPRINTF("Warning: Could not retrieve cvar value for player slot %d cvar %s, status %d\n", nSlot.Get(), pszCvarName, (int)eStatus);
+		KZInfo("Warning: Could not retrieve cvar value for player slot %d cvar %s, status %d\n", nSlot.Get(), pszCvarName, (int)eStatus);
 		return;
 	}
 	KZPlayer *player = g_pKZPlayerManager->ToPlayer(nSlot);

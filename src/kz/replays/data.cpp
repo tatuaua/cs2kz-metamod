@@ -155,7 +155,7 @@ namespace KZ::replaysystem::data
 			progress = static_cast<f32>(bytesRead) / static_cast<f32>(fileSize);
 			if (kz_replay_playback_debug.Get())
 			{
-				META_CONPRINTF("Replay load progress: %zu bytes, %.2f%%\n", bytesRead, progress.load() * 100.0f);
+				KZInfo("Replay load progress: %zu bytes, %.2f%%\n", bytesRead, progress.load() * 100.0f);
 			}
 		}
 	}
@@ -183,7 +183,7 @@ namespace KZ::replaysystem::data
 		}
 		if (kz_replay_playback_debug.Get())
 		{
-			META_CONPRINTF("Loading replay protobuf header...\n");
+			KZInfo("Loading replay protobuf header...\n");
 		}
 		u32 headerSize = 0;
 		if (g_pFullFileSystem->Read(&headerSize, sizeof(headerSize), file) != sizeof(headerSize))
@@ -224,7 +224,7 @@ namespace KZ::replaysystem::data
 		}
 		if (kz_replay_playback_debug.Get())
 		{
-			META_CONPRINTF("Loading compressed tick data...\n");
+			KZInfo("Loading compressed tick data...\n");
 		}
 
 		std::vector<TickData> tickDataVec;
@@ -262,7 +262,7 @@ namespace KZ::replaysystem::data
 		}
 		if (kz_replay_playback_debug.Get())
 		{
-			META_CONPRINTF("Loading weapons...\n");
+			KZInfo("Loading weapons...\n");
 		}
 
 		std::vector<std::pair<i32, EconInfo>> weaponTableVec;
@@ -300,7 +300,7 @@ namespace KZ::replaysystem::data
 		}
 		if (kz_replay_playback_debug.Get())
 		{
-			META_CONPRINTF("Loading compressed jump stats...\n");
+			KZInfo("Loading compressed jump stats...\n");
 		}
 
 		std::vector<RpJumpStats> jumpsVec;
@@ -346,7 +346,7 @@ namespace KZ::replaysystem::data
 		}
 		if (kz_replay_playback_debug.Get())
 		{
-			META_CONPRINTF("Loading compressed events...\n");
+			KZInfo("Loading compressed events...\n");
 		}
 
 		std::vector<RpEvent> eventsVec;

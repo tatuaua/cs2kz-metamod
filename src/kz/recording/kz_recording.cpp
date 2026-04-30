@@ -258,7 +258,7 @@ void KZRecordingService::CheckRecorders()
 			// Stop this recorder and queue for async write
 			if (kz_replay_recording_debug.Get())
 			{
-				META_CONPRINTF("kz_replay_recording_debug: Run recorder stopped\n");
+				KZInfo("kz_replay_recording_debug: Run recorder stopped\n");
 			}
 			if (fileWriter)
 			{
@@ -303,7 +303,7 @@ void KZRecordingService::CheckRecorders()
 			// Stop this recorder and queue for async write
 			if (kz_replay_recording_debug.Get())
 			{
-				META_CONPRINTF("kz_replay_recording_debug: Jump recorder stopped\n");
+				KZInfo("kz_replay_recording_debug: Jump recorder stopped\n");
 			}
 			if (fileWriter)
 			{
@@ -359,7 +359,7 @@ void KZRecordingService::CheckModeStyles()
 		this->InsertEvent(event);
 		if (kz_replay_recording_debug.Get())
 		{
-			META_CONPRINTF("kz_replay_recording_debug: Mode change event: %s\n", currentModeInfo.longModeName.Get());
+			KZInfo("kz_replay_recording_debug: Mode change event: %s\n", currentModeInfo.longModeName.Get());
 		}
 	}
 	bool refreshStyles = this->player->styleServices.Count() != this->lastKnownStyles.size();
@@ -399,7 +399,7 @@ void KZRecordingService::CheckModeStyles()
 		}
 		if (kz_replay_recording_debug.Get())
 		{
-			META_CONPRINTF("kz_replay_recording_debug: Style change event: %u styles\n", (unsigned int)this->lastKnownStyles.size());
+			KZInfo("kz_replay_recording_debug: Style change event: %u styles\n", (unsigned int)this->lastKnownStyles.size());
 		}
 	}
 
@@ -438,7 +438,7 @@ void KZRecordingService::EnsureCircularRecorderInitialized()
 	if (!this->circularRecording)
 	{
 		this->circularRecording = new CircularRecorder();
-		META_CONPRINTF("[KZ] Initialized circular recorder for player %s\n", this->player->GetName());
+		KZInfo("[KZ] Initialized circular recorder for player %s\n", this->player->GetName());
 	}
 }
 
@@ -536,12 +536,12 @@ void KZRecordingService::CopyWeaponsToRecorder(Recorder *recorder)
 
 	if (kz_replay_recording_debug.Get())
 	{
-		META_CONPRINTF("kz_replay_recording_debug: Copying %u referenced weapons to recorder\n", referencedWeaponIndices.size());
+		KZInfo("kz_replay_recording_debug: Copying %u referenced weapons to recorder\n", referencedWeaponIndices.size());
 	}
 
 	for (i32 weaponIndex : referencedWeaponIndices)
 	{
-		META_CONPRINTF("Pushing weapon index %d to recorder\n", weaponIndex);
+		KZInfo("Pushing weapon index %d to recorder\n", weaponIndex);
 		auto weapon = this->weapons[weaponIndex];
 		recorder->weaponTable.push_back({weaponIndex, weapon});
 	}

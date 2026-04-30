@@ -115,7 +115,7 @@ void KZAnticheatService::Infraction::SubmitLocalInfraction()
 	auto &id = this->id;
 	auto onSuccess = [id](std::vector<ISQLQuery *> queries)
 	{
-		META_CONPRINTF("[KZ::Anticheat] Saved local infraction %s\n", id.ToString().c_str());
+		KZInfo("[KZ::Anticheat] Saved local infraction %s\n", id.ToString().c_str());
 		if (KZAnticheatService::Infraction *infraction = KZAnticheatService::GetPendingInfraction(id))
 		{
 			infraction->Finalize();
@@ -123,7 +123,7 @@ void KZAnticheatService::Infraction::SubmitLocalInfraction()
 	};
 	auto onFailure = [id](std::string error, int failIndex)
 	{
-		META_CONPRINTF("[KZ::Anticheat] Failed to record local infraction %s: %s\n", id.ToString().c_str(), error.c_str());
+		KZInfo("[KZ::Anticheat] Failed to record local infraction %s: %s\n", id.ToString().c_str(), error.c_str());
 		if (KZAnticheatService::Infraction *infraction = KZAnticheatService::GetPendingInfraction(id))
 		{
 			infraction->Finalize();
@@ -145,13 +145,13 @@ void KZAnticheatService::Infraction::SaveReplay()
 			// Success callback
 			[name, steamID](const UUID_t &uuid, f32 replayDuration)
 			{
-				META_CONPRINTF("[KZ::Anticheat] Cheater replay %s saved for player %s (%llu)\n", uuid.ToString().c_str(), name.c_str(), steamID);
+				KZInfo("[KZ::Anticheat] Cheater replay %s saved for player %s (%llu)\n", uuid.ToString().c_str(), name.c_str(), steamID);
 				// TODO Anticheat: Add UUID to the global upload queue
 			},
 			// Failure callback
 			[name, steamID](const char *error)
 			{
-				META_CONPRINTF("[KZ::Anticheat] Failed to save cheater replay for player %s (%llu) - Error: %s\n", name.c_str(), steamID, error);
+				KZInfo("[KZ::Anticheat] Failed to save cheater replay for player %s (%llu) - Error: %s\n", name.c_str(), steamID, error);
 			});
 		// clang-format on
 	}

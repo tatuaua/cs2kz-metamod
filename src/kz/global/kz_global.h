@@ -66,7 +66,7 @@ private:
 
 		virtual void OnError(u32 messageID, const KZ::api::messages::Error &error)
 		{
-			META_CONPRINTF("[KZ::Global] Received error response to WebSocket message (id=%i): %s\n", messageID, error.message.c_str());
+			KZInfo("[KZ::Global] Received error response to WebSocket message (id=%i): %s\n", messageID, error.message.c_str());
 		}
 
 		virtual void OnCancelled(u32 messageID, CancelReason reason)
@@ -88,7 +88,7 @@ private:
 				break;
 			}
 
-			META_CONPRINTF("[KZ::Global] Cancelled WebSocket message (id=%i, %s)\n", messageID, reasonStr);
+			KZInfo("[KZ::Global] Cancelled WebSocket message (id=%i, %s)\n", messageID, reasonStr);
 		}
 	};
 
@@ -110,7 +110,7 @@ public:
 			}
 			else
 			{
-				META_CONPRINTF("[KZ::Global] Received unknown payload as WebSocket response. (id=%i)\n", messageID);
+				KZInfo("[KZ::Global] Received unknown payload as WebSocket response. (id=%i)\n", messageID);
 			}
 		}
 
@@ -385,7 +385,7 @@ private:
 		static bool SendMessageImpl(u32 &messageID, const char *&messageType, Json &messagePayload, const Payload &payload)
 		{
 			messageID = NextMessageID();
-			META_CONPRINTF("[KZ::Global] assigned message ID %i\n", messageID);
+			KZInfo("[KZ::Global] assigned message ID %i\n", messageID);
 			messageType = Payload::Name();
 
 			if (!messagePayload.Set("id", messageID))
@@ -407,7 +407,7 @@ private:
 			socket->send(encodedPayload);
 
 			// clang-format off
-			META_CONPRINTF("[KZ::Global] Sent WebSocket message. (id=%i, type=%s)\n"
+			KZInfo("[KZ::Global] Sent WebSocket message. (id=%i, type=%s)\n"
 					"------------------------------------\n"
 					"%s\n"
 					"------------------------------------\n",
@@ -532,7 +532,7 @@ public:
 
 		if (!currentMapIsGlobal)
 		{
-			META_CONPRINTF("[KZ::Global] Cannot submit record on non-global map.\n");
+			KZInfo("[KZ::Global] Cannot submit record on non-global map.\n");
 			return SubmitRecordResult::MapNotGlobal;
 		}
 

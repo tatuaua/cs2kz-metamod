@@ -107,7 +107,7 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 	}
 	if (current > max)
 	{
-		META_CONPRINTF("[KZ::DB] Fatal error: Number of current migrations are higher than the maximum!\n");
+		KZInfo("[KZ::DB] Fatal error: Number of current migrations are higher than the maximum!\n");
 		return;
 	}
 
@@ -132,12 +132,12 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 		}
 
 		u32 crc = CRC32_ProcessSingleBuffer(migrationQuery.c_str(), migrationQuery.length());
-		META_CONPRINTF("crc = %lu, currentCRC = %lu\n", crc, currentCRC);
+		KZInfo("crc = %lu, currentCRC = %lu\n", crc, currentCRC);
 		if (currentCRC != crc)
 		{
-			META_CONPRINTF("[KZ::DB] Fatal error: Migration query %s with CRC %lu does not match the database's %lu!\n", migrationQuery.c_str(), crc,
+			KZInfo("[KZ::DB] Fatal error: Migration query %s with CRC %lu does not match the database's %lu!\n", migrationQuery.c_str(), crc,
 						   currentCRC);
-			META_CONPRINT("[KZ::DB] Database migration failed. LocalDB will not be available.");
+			KZInfo("[KZ::DB] Database migration failed. LocalDB will not be available.");
 			databaseConnection->Destroy();
 			databaseConnection = nullptr;
 			return;
@@ -146,7 +146,7 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 
 	auto onSuccess = []()
 	{
-		META_CONPRINT("[KZ::DB] Database migration successful.\n");
+		KZInfo("[KZ::DB] Database migration successful.\n");
 		localDBConnected = true;
 		KZDatabaseService::SetupMap();
 		CALL_FORWARD(eventListeners, OnDatabaseSetup);
@@ -154,7 +154,7 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 
 	auto onFailure = []()
 	{
-		META_CONPRINT("[KZ::DB] Database migration failed. LocalDB will not be available.\n");
+		KZInfo("[KZ::DB] Database migration failed. LocalDB will not be available.\n");
 		databaseConnection->Destroy();
 		databaseConnection = nullptr;
 	};
