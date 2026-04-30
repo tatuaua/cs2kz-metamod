@@ -249,4 +249,16 @@
 		"ko"		"{grey}중앙 정보 패널이 비활성화되었습니다."
 		"lv"		"{grey}Jūsu centrālais informācijas panelis ir deaktivizēts."
 	}
+	"HUD Option - Compact Panel - Enable"
+	{
+		"en"		"{grey}Compact panel enabled."
+	}
+	"HUD Option - Compact Panel - Disable"
+	{
+		"en"		"{grey}Compact panel disabled."
+	}
+	"Panel Command Usage"
+	{
+		"en"		"{grey}Usage: {default}kz_panel <compact>{grey}."
+	}
 }
