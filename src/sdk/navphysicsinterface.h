@@ -8,12 +8,12 @@ class INavPhysicsInterface
 {
 private:
 	virtual ~INavPhysicsInterface() = 0;
+	virtual void Nav_TraceLine(const Vector &vStart, const Vector &vEnd, CBaseEntity *pIgnore, uint64 nInteractsWith, uint8 nCollisionGroup,
+							   uint8 nObjectSetMask, CGameTrace *trace) = 0;
 	virtual void Nav_TraceLine(const Vector &vStart, const Vector &vEnd, CTraceFilter *pFilter, CGameTrace *pTraceOut) = 0;
-	virtual void Nav_TraceLineEx(const Vector &vStart, const Vector &vEnd, CBaseEntity *pIgnore, uint64 nInteractsWith, uint8 nCollisionGroup,
-								 uint8 nObjectSetMask, CGameTrace *trace) = 0;
+	virtual void Nav_TraceShape(const Ray_t &ray, const Vector &vStart, const Vector &vEnd, CBaseEntity *pIgnore, uint64 nInteractsWith,
+								uint8 nCollisionGroup, uint8 nObjectSetMask, CGameTrace *trace) = 0;
 	virtual void Nav_TraceShape(const Ray_t &ray, const Vector &vStart, const Vector &vEnd, CTraceFilter *pFilter, CGameTrace *trace) = 0;
-	virtual void Nav_TraceShapeEx(const Ray_t &ray, const Vector &vStart, const Vector &vEnd, CBaseEntity *pIgnore, uint64 nInteractsWith,
-								  uint8 nCollisionGroup, uint8 nObjectSetMask, CGameTrace *trace) = 0;
 	virtual uint64 Nav_PointContents(const Vector *const vTestPos, uint64 nContentsMask) = 0;
 	virtual bool Nav_CheckAreaOverlappingEntity(const void *const rArea, /*CNavArea*/
 												const CBaseEntity *const rEntity, bool bExtrudeHullHeight) = 0;
