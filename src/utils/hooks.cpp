@@ -432,6 +432,20 @@ static_function void Hook_OnTouch(CBaseEntity *pOther)
 	{
 		RETURN_META(MRES_SUPERCEDE);
 	}
+	// If it's a player touching trigger_push, we still need to disable jumpstats.
+	KZPlayer *player = nullptr;
+	if (KZ_STREQI(pThis->GetClassname(), "trigger_push") && KZ_STREQI(pOther->GetClassname(), "player"))
+	{
+		player = g_pKZPlayerManager->ToPlayer(static_cast<CCSPlayerPawn *>(pOther));
+	}
+	else if (KZ_STREQI(pThis->GetClassname(), "player") && KZ_STREQI(pOther->GetClassname(), "trigger_push"))
+	{
+		player = g_pKZPlayerManager->ToPlayer(static_cast<CCSPlayerPawn *>(pThis));
+	}
+	if (player)
+	{
+		player->jumpstatsService->InvalidateJumpstats("Base velocity detected");
+	}
 	RETURN_META(MRES_IGNORED);
 }
 
