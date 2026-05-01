@@ -99,7 +99,7 @@ void KZProfileService::RequestRating()
 		if (kz_profile_debug.GetBool())
 		{
 			KZInfo("[KZ::Profile] Player %s has invalid mode '%s', cannot request rating.\n", this->player->GetName(),
-						   this->player->modeService->GetModeShortName());
+				   this->player->modeService->GetModeShortName());
 		}
 		return;
 	}
@@ -132,8 +132,7 @@ void KZProfileService::RequestRating()
 	HTTP::Request request(HTTP::Method::GET, url);
 	if (kz_profile_debug.GetBool())
 	{
-		KZInfo("[KZ::Profile] Requesting rating for player %s (%llu) in mode %d.\n", this->player->GetName(), steamID64,
-					   static_cast<u8>(mode));
+		KZInfo("[KZ::Profile] Requesting rating for player %s (%llu) in mode %d.\n", this->player->GetName(), steamID64, static_cast<u8>(mode));
 	}
 	auto callback = [steamID64, mode](HTTP::Response response)
 	{

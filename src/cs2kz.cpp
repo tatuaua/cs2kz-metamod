@@ -86,7 +86,7 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 	if (m_pFile)
 	{
 		std::time_t t = std::time(nullptr);
-		std::tm tm{};
+		std::tm tm {};
 #ifdef _WIN32
 		localtime_s(&tm, &t);
 #else

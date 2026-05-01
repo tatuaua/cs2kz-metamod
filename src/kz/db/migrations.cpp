@@ -136,7 +136,7 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 		if (currentCRC != crc)
 		{
 			KZInfo("[KZ::DB] Fatal error: Migration query %s with CRC %lu does not match the database's %lu!\n", migrationQuery.c_str(), crc,
-						   currentCRC);
+				   currentCRC);
 			KZInfo("[KZ::DB] Database migration failed. LocalDB will not be available.");
 			databaseConnection->Destroy();
 			databaseConnection = nullptr;

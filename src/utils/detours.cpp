@@ -115,20 +115,20 @@ bool Detour_TraceShape(const void *physicsQuery, const Ray_t &ray, const Vector 
 		case RAY_TYPE_CAPSULE:
 		{
 			KZInfo("RAY_TYPE_CAPSULE radius %f, center %s %s, ", ray.m_Capsule.m_flRadius, VecToString(ray.m_Capsule.m_vCenter[0]),
-						   VecToString(ray.m_Capsule.m_vCenter[1]));
+				   VecToString(ray.m_Capsule.m_vCenter[1]));
 			break;
 		}
 		case RAY_TYPE_MESH:
 		{
 			KZInfo("RAY_TYPE_MESH mins = %s, maxs = %s, numVertice = %i, pVertices = %p, ", VecToString(ray.m_Mesh.m_vMins),
-						   VecToString(ray.m_Mesh.m_vMaxs), ray.m_Mesh.m_nNumVertices, ray.m_Mesh.m_pVertices);
+				   VecToString(ray.m_Mesh.m_vMaxs), ray.m_Mesh.m_nNumVertices, ray.m_Mesh.m_pVertices);
 			break;
 		}
 	}
 	if (pm->DidHit())
 	{
-		KZInfo("hit %s (normal %s, triangle %i, body %p, shape %p)\n", VecToString(pm->m_vEndPos), VecToString(pm->m_vHitNormal),
-					   pm->m_nTriangle, pm->m_hBody, pm->m_hShape);
+		KZInfo("hit %s (normal %s, triangle %i, body %p, shape %p)\n", VecToString(pm->m_vEndPos), VecToString(pm->m_vHitNormal), pm->m_nTriangle,
+			   pm->m_hBody, pm->m_hShape);
 	}
 	else
 	{

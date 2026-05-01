@@ -366,30 +366,28 @@ void FASTCALL movement::Detour_TryPlayerMove(CCSPlayer_MovementServices *ms, CMo
 		{
 			if (traceHistory[i].end != traceHistory[i + count].end)
 			{
-				KZInfo("Trace not matching! Previous traces (initial error %f, initial velocity %s):\n", initialError,
-							   VecToString(initialVelocity));
+				KZInfo("Trace not matching! Previous traces (initial error %f, initial velocity %s):\n", initialError, VecToString(initialVelocity));
 				for (i32 j = 0; j <= i; j++)
 				{
 					KZInfo("Pred %f %f %f -> %f %f %f, error %f, velocity %s ", traceHistory[j].start.x, traceHistory[j].start.y,
-								   traceHistory[j].start.z, traceHistory[j].end.x, traceHistory[j].end.y, traceHistory[j].end.z,
-								   traceHistory[j].error, VecToString(traceHistory[j].velocity));
+						   traceHistory[j].start.z, traceHistory[j].end.x, traceHistory[j].end.y, traceHistory[j].end.z, traceHistory[j].error,
+						   VecToString(traceHistory[j].velocity));
 					if (traceHistory[j].didHit)
 					{
-						KZInfo("hit %s (normal %s, hitpoint %s)\n", VecToString(traceHistory[j].m_vEndPos),
-									   VecToString(traceHistory[j].m_vHitNormal), VecToString(traceHistory[j].m_vHitPoint));
+						KZInfo("hit %s (normal %s, hitpoint %s)\n", VecToString(traceHistory[j].m_vEndPos), VecToString(traceHistory[j].m_vHitNormal),
+							   VecToString(traceHistory[j].m_vHitPoint));
 					}
 					else
 					{
 						KZInfo("missed\n");
 					}
-					KZInfo("Real %f %f %f -> %f %f %f, error %f, velocity %s ", traceHistory[j + count].start.x,
-								   traceHistory[j + count].start.y, traceHistory[j + count].start.z, traceHistory[j + count].end.x,
-								   traceHistory[j + count].end.y, traceHistory[j + count].end.z, traceHistory[j + count].error,
-								   VecToString(traceHistory[j + count].velocity));
+					KZInfo("Real %f %f %f -> %f %f %f, error %f, velocity %s ", traceHistory[j + count].start.x, traceHistory[j + count].start.y,
+						   traceHistory[j + count].start.z, traceHistory[j + count].end.x, traceHistory[j + count].end.y,
+						   traceHistory[j + count].end.z, traceHistory[j + count].error, VecToString(traceHistory[j + count].velocity));
 					if (traceHistory[j + count].didHit)
 					{
 						KZInfo("hit %s (normal %s, hitpoint %s)\n", VecToString(traceHistory[j + count].m_vEndPos),
-									   VecToString(traceHistory[j + count].m_vHitNormal), VecToString(traceHistory[j + count].m_vHitPoint));
+							   VecToString(traceHistory[j + count].m_vHitNormal), VecToString(traceHistory[j + count].m_vHitPoint));
 					}
 					else
 					{
