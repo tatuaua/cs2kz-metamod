@@ -170,11 +170,11 @@ void KZLanguageService::UpdateLanguage(u64 xuid, const char *langKey, LanguageIn
 	{
 		if (KZ_STREQI(langInfo.lastAddon, KZLanguageService::GetBaseAddon()))
 		{
-			KZInfo("[KZ::Language] Adding %s for client %lli\n", addon, xuid);
+			KZInfo("[KZ::Language] Adding %s for client %llu\n", addon, xuid);
 		}
 		else
 		{
-			KZInfo("[KZ::Language] Adding %s and removing %s for client %lli\n", addon, langInfo.lastAddon, xuid);
+			KZInfo("[KZ::Language] Adding %s and removing %s for client %llu\n", addon, langInfo.lastAddon, xuid);
 		}
 		if (g_pMultiAddonManager)
 		{

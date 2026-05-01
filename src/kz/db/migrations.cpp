@@ -132,10 +132,10 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 		}
 
 		u32 crc = CRC32_ProcessSingleBuffer(migrationQuery.c_str(), migrationQuery.length());
-		KZInfo("crc = %lu, currentCRC = %lu\n", crc, currentCRC);
+		KZInfo("crc = %u, currentCRC = %u\n", crc, currentCRC);
 		if (currentCRC != crc)
 		{
-			KZInfo("[KZ::DB] Fatal error: Migration query %s with CRC %lu does not match the database's %lu!\n", migrationQuery.c_str(), crc,
+			KZInfo("[KZ::DB] Fatal error: Migration query %s with CRC %u does not match the database's %u!\n", migrationQuery.c_str(), crc,
 				   currentCRC);
 			KZInfo("[KZ::DB] Database migration failed. LocalDB will not be available.");
 			databaseConnection->Destroy();
