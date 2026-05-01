@@ -155,14 +155,15 @@ void KZHUDService::DrawPanels(KZPlayer *player, KZPlayer *target)
 	std::string timerText = player->hudService->GetTimerText(language);
 	std::string speedText = player->hudService->GetSpeedText(language);
 
+	bool compact = target->hudService->IsCompactPanel();
 	// clang-format off
-	std::string centerText = KZLanguageService::PrepareMessageWithLang(language, "HUD - Center Text", 
+	std::string centerText = compact ? "" : KZLanguageService::PrepareMessageWithLang(language, "HUD - Center Text",
 		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
 	std::string alertText = KZLanguageService::PrepareMessageWithLang(language, "HUD - Alert Text", 
 		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
-	std::string htmlText = KZLanguageService::PrepareMessageWithLang(language, "HUD - Html Center Text",
-		keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
-
+	std::string htmlText = compact ? (timerText.empty() ? speedText : timerText + "<br>" + speedText)
+		: KZLanguageService::PrepareMessageWithLang(language, "HUD - Html Center Text",
+			keyText.c_str(), checkpointText.c_str(), timerText.c_str(), speedText.c_str());
 	// clang-format on
 
 	centerText = centerText.substr(0, centerText.find_last_not_of('\n') + 1);
@@ -222,9 +223,40 @@ void KZTimerServiceEventListener_HUD::OnTimerEndPost(KZPlayer *player, u32 cours
 	player->hudService->OnTimerStopped(time);
 }
 
+bool KZHUDService::IsCompactPanel()
+{
+	return this->player->optionService->GetPreferenceBool("compactPanel");
+}
+
+void KZHUDService::ToggleCompactPanel()
+{
+	this->player->optionService->SetPreferenceBool("compactPanel", !this->IsCompactPanel());
+}
+
 SCMD(kz_panel, SCFL_HUD)
 {
 	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
+	if (args->ArgC() >= 2)
+	{
+		if (KZ_STREQI(args->Arg(1), "compact"))
+		{
+			player->hudService->ToggleCompactPanel();
+			if (player->hudService->IsCompactPanel())
+			{
+				player->languageService->PrintChat(true, false, "HUD Option - Compact Panel - Enable");
+			}
+			else
+			{
+				player->languageService->PrintChat(true, false, "HUD Option - Compact Panel - Disable");
+			}
+			return MRES_SUPERCEDE;
+		}
+		else
+		{
+			player->languageService->PrintChat(true, false, "Panel Command Usage");
+			return MRES_SUPERCEDE;
+		}
+	}
 	player->hudService->TogglePanel();
 	if (player->hudService->IsShowingPanel())
 	{
