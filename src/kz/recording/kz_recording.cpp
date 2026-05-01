@@ -399,7 +399,7 @@ void KZRecordingService::CheckModeStyles()
 		}
 		if (kz_replay_recording_debug.Get())
 		{
-			KZInfo("kz_replay_recording_debug: Style change event: %u styles\n", (unsigned int)this->lastKnownStyles.size());
+			KZInfo("kz_replay_recording_debug: Style change event: %zu styles\n", (unsigned int)this->lastKnownStyles.size());
 		}
 	}
 
@@ -536,7 +536,7 @@ void KZRecordingService::CopyWeaponsToRecorder(Recorder *recorder)
 
 	if (kz_replay_recording_debug.Get())
 	{
-		KZInfo("kz_replay_recording_debug: Copying %u referenced weapons to recorder\n", referencedWeaponIndices.size());
+		KZInfo("kz_replay_recording_debug: Copying %zu referenced weapons to recorder\n", referencedWeaponIndices.size());
 	}
 
 	for (i32 weaponIndex : referencedWeaponIndices)
