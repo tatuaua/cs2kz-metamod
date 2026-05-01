@@ -13,11 +13,21 @@ extern KZPlugin g_KZPlugin;
 class KZLoggingListener : public ILoggingListener
 {
 public:
+	enum LogLevel : int
+	{
+		LOG_LEVEL_NONE = 0,
+		LOG_LEVEL_WARNING,
+		LOG_LEVEL_INFO,
+		LOG_LEVEL_DEBUG,
+	};
+
 	void Log(const LoggingContext_t *pContext, const tchar *pMessage) override;
 	void OpenFile();
 	void CloseFile();
 
-	bool m_debugEnabled = false;
+	static LogLevel ParseLogLevel(const char *value, LogLevel defaultLevel = LOG_LEVEL_INFO);
+
+	LogLevel m_logLevel = LOG_LEVEL_INFO;
 
 private:
 	FILE *m_pFile = nullptr;

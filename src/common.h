@@ -80,7 +80,6 @@ typedef double f64;
 #define KZDebug(fmt, ...) InternalMsg(LOG_KZ, LS_DETAILED, fmt, ##__VA_ARGS__)
 #define KZInfo(fmt, ...)  Log_Msg(LOG_KZ, fmt, ##__VA_ARGS__)
 #define KZWarn(fmt, ...)  Log_Warning(LOG_KZ, fmt, ##__VA_ARGS__)
-#define KZError(fmt, ...) Log_Error(LOG_KZ, fmt, ##__VA_ARGS__)
 
 // clang-format off
 #define VPROF_SCOPE_BEGIN_KZ(tag) do { VPROF_(tag, 1, "CS2KZ", false, 0)

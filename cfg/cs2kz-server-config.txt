@@ -85,6 +85,11 @@
 	// Whether to write CS2KZ log output to addons/cs2kz/logs/cs2kz.log.
 	"logToFile"					"true"
 
-	// Whether to emit KZDebug log messages.
-	"debugLogging"				"false"
+	// Minimum severity of CS2KZ log messages that are emitted.
+	// Valid values (in increasing verbosity):
+	//   "none"    - suppress all CS2KZ log output
+	//   "warning" - only warnings
+	//   "info"    - info and warnings (default)
+	//   "debug"   - everything
+	"logLevel"					"info"
 }
