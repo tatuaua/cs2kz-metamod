@@ -399,7 +399,7 @@ void KZRecordingService::CheckModeStyles()
 		}
 		if (kz_replay_recording_debug.Get())
 		{
-			KZInfo("kz_replay_recording_debug: Style change event: %zu styles\n", (unsigned int)this->lastKnownStyles.size());
+			KZInfo("kz_replay_recording_debug: Style change event: %u styles\n", (unsigned int)this->lastKnownStyles.size());
 		}
 	}
 
