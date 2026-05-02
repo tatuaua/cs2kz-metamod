@@ -1,11 +1,9 @@
 #pragma once
 
 #include <string_view>
-#include <cstdio>
 
 #include "common.h"
 #include "version_gen.h"
-#include "tier0/logging.h"
 
 class KZPlugin;
 extern KZPlugin g_KZPlugin;
