@@ -34,11 +34,11 @@ static_global bool VerifyCommand(const PlayerCommand &cmd)
 		else
 		{
 			// analog input?
-			if (cmd.base().subtick_moves(i).has_analog_forward_delta())
+			if (cmd.base().subtick_moves(i).has_analog_forward_delta() && cmd.base().subtick_moves(i).analog_forward_delta() != 0)
 			{
 				expectedButtons &= ~(IN_FORWARD | IN_BACK);
 			}
-			if (cmd.base().subtick_moves(i).has_analog_left_delta())
+			if (cmd.base().subtick_moves(i).has_analog_left_delta() && cmd.base().subtick_moves(i).analog_left_delta() != 0)
 			{
 				expectedButtons &= ~(IN_MOVELEFT | IN_MOVERIGHT);
 			}
