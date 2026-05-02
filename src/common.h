@@ -77,6 +77,12 @@ typedef double f64;
 
 // CS2KZ logging macros. Route through Valve's logging system; KZLoggingListener
 // in cs2kz.cpp handles console color and optional file output.
+//
+// Prefer the new KZ_LOG_* macros from utils/logging.h (they take a LogService
+// enumerator that gets prepended to the message as "[Service] "). The legacy
+// KZDebug / KZInfo / KZWarn aliases below log to the general LOG_KZ channel
+// without a service prefix and exist only so existing call sites keep
+// compiling until they're migrated.
 #define KZDebug(fmt, ...) InternalMsg(LOG_KZ, LS_DETAILED, fmt, ##__VA_ARGS__)
 #define KZInfo(fmt, ...)  Log_Msg(LOG_KZ, fmt, ##__VA_ARGS__)
 #define KZWarn(fmt, ...)  Log_Warning(LOG_KZ, fmt, ##__VA_ARGS__)

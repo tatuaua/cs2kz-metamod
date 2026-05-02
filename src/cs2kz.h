@@ -5,20 +5,10 @@
 #include "common.h"
 #include "filesystem.h"
 #include "version_gen.h"
+#include "utils/logging.h"
 
 class KZPlugin;
 extern KZPlugin g_KZPlugin;
-
-class KZLoggingListener : public ILoggingListener
-{
-public:
-	void Log(const LoggingContext_t *pContext, const tchar *pMessage) override;
-	void OpenFile();
-	void CloseFile();
-
-private:
-	FileHandle_t m_pFile = nullptr;
-};
 
 class KZPlugin : public ISmmPlugin, public IMetamodListener
 {

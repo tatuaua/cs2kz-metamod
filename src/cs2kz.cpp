@@ -1,7 +1,5 @@
 #include "cs2kz.h"
 
-#include <ctime>
-
 #include "entity2/entitysystem.h"
 #include "steam/steam_gameserver.h"
 #include "filesystem.h"
@@ -44,77 +42,6 @@ IClientCvarValue *g_pClientCvarValue;
 CSteamGameServerAPIContext g_steamAPI;
 
 PLUGIN_EXPOSE(KZPlugin, g_KZPlugin);
-
-void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMessage)
-{
-	if (pContext->m_ChannelID != LOG_KZ)
-	{
-		return;
-	}
-
-	const char *level = "INFO";
-	Color color(255, 255, 255, 255);
-
-	if (pContext->m_Severity >= LS_WARNING)
-	{
-		level = "WARN";
-		color = Color(255, 220, 80, 255);
-	}
-	else if (pContext->m_Severity == LS_DETAILED)
-	{
-		level = "DEBUG";
-		color = Color(160, 160, 160, 255);
-	}
-
-	ConColorMsg(color, "[%s] %s", level, pMessage);
-	size_t msgLen = V_strlen(pMessage);
-	bool needsNewline = (msgLen == 0 || pMessage[msgLen - 1] != '\n');
-	if (needsNewline)
-	{
-		ConColorMsg(color, "\n");
-	}
-
-	if (m_pFile)
-	{
-		std::time_t t = std::time(nullptr);
-		std::tm tm {};
-#ifdef _WIN32
-		localtime_s(&tm, &t);
-#else
-		localtime_r(&t, &tm);
-#endif
-		char ts[32];
-		std::strftime(ts, sizeof(ts), "%Y-%m-%d %H:%M:%S", &tm);
-		g_pFullFileSystem->FPrintf(m_pFile, "[%s] [%s] %s%s", ts, level, pMessage, needsNewline ? "\n" : "");
-		g_pFullFileSystem->Flush(m_pFile);
-	}
-}
-
-void KZLoggingListener::OpenFile()
-{
-	if (m_pFile)
-	{
-		return;
-	}
-	char dir[1024];
-	V_snprintf(dir, sizeof(dir), "%s/addons/cs2kz/logs", g_SMAPI->GetBaseDir());
-	V_FixSlashes(dir);
-	g_pFullFileSystem->CreateDirHierarchy(dir, nullptr);
-
-	char path[1024];
-	V_snprintf(path, sizeof(path), "%s/cs2kz.log", dir);
-	V_FixSlashes(path);
-	m_pFile = g_pFullFileSystem->Open(path, "a");
-}
-
-void KZLoggingListener::CloseFile()
-{
-	if (m_pFile)
-	{
-		g_pFullFileSystem->Close(m_pFile);
-		m_pFile = nullptr;
-	}
-}
 
 bool KZPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
