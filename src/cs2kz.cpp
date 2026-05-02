@@ -104,8 +104,8 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 #endif
 		char ts[32];
 		std::strftime(ts, sizeof(ts), "%Y-%m-%d %H:%M:%S", &tm);
-		fprintf(m_pFile, "[%s] [%s] %s%s", ts, level, pMessage, needsNewline ? "\n" : "");
-		fflush(m_pFile);
+		g_pFullFileSystem->FPrintf(m_pFile, "[%s] [%s] %s%s", ts, level, pMessage, needsNewline ? "\n" : "");
+		g_pFullFileSystem->Flush(m_pFile);
 	}
 }
 
@@ -123,14 +123,14 @@ void KZLoggingListener::OpenFile()
 	char path[1024];
 	V_snprintf(path, sizeof(path), "%s/cs2kz.log", dir);
 	V_FixSlashes(path);
-	m_pFile = fopen(path, "a");
+	m_pFile = g_pFullFileSystem->Open(path, "a");
 }
 
 void KZLoggingListener::CloseFile()
 {
 	if (m_pFile)
 	{
-		fclose(m_pFile);
+		g_pFullFileSystem->Close(m_pFile);
 		m_pFile = nullptr;
 	}
 }

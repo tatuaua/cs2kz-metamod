@@ -3,6 +3,7 @@
 #include <string_view>
 
 #include "common.h"
+#include "filesystem.h"
 #include "version_gen.h"
 
 class KZPlugin;
@@ -28,7 +29,7 @@ public:
 	LogLevel m_logLevel = LOG_LEVEL_INFO;
 
 private:
-	FILE *m_pFile = nullptr;
+	FileHandle_t m_pFile = nullptr;
 };
 
 class KZPlugin : public ISmmPlugin, public IMetamodListener
