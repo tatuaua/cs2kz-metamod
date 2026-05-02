@@ -52,34 +52,15 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 		return;
 	}
 
-	LogLevel msgLevel;
-	if (pContext->m_Severity >= LS_WARNING)
-	{
-		msgLevel = LOG_LEVEL_WARNING;
-	}
-	else if (pContext->m_Severity == LS_DETAILED)
-	{
-		msgLevel = LOG_LEVEL_DEBUG;
-	}
-	else
-	{
-		msgLevel = LOG_LEVEL_INFO;
-	}
-
-	if (msgLevel > m_logLevel)
-	{
-		return;
-	}
-
 	const char *level = "INFO";
 	Color color(255, 255, 255, 255);
 
-	if (msgLevel == LOG_LEVEL_WARNING)
+	if (pContext->m_Severity >= LS_WARNING)
 	{
 		level = "WARN";
 		color = Color(255, 220, 80, 255);
 	}
-	else if (msgLevel == LOG_LEVEL_DEBUG)
+	else if (pContext->m_Severity == LS_DETAILED)
 	{
 		level = "DEBUG";
 		color = Color(160, 160, 160, 255);
@@ -135,31 +116,6 @@ void KZLoggingListener::CloseFile()
 	}
 }
 
-KZLoggingListener::LogLevel KZLoggingListener::ParseLogLevel(const char *value, LogLevel defaultLevel)
-{
-	if (!value || !*value)
-	{
-		return defaultLevel;
-	}
-	if (KZ_STREQI(value, "none"))
-	{
-		return LOG_LEVEL_NONE;
-	}
-	if (KZ_STREQI(value, "warning"))
-	{
-		return LOG_LEVEL_WARNING;
-	}
-	if (KZ_STREQI(value, "info"))
-	{
-		return LOG_LEVEL_INFO;
-	}
-	if (KZ_STREQI(value, "debug"))
-	{
-		return LOG_LEVEL_DEBUG;
-	}
-	return defaultLevel;
-}
-
 bool KZPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	setlocale(LC_ALL, "en_US.utf8");
@@ -203,8 +159,6 @@ bool KZPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool
 	{
 		this->loggingListener.OpenFile();
 	}
-	this->loggingListener.m_logLevel =
-		KZLoggingListener::ParseLogLevel(KZOptionService::GetOptionStr("logLevel", "info"), KZLoggingListener::LOG_LEVEL_INFO);
 	KZTipService::Init();
 	KZAnticheatService::Init();
 	if (late)
