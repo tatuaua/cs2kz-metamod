@@ -1,9 +1,14 @@
 #include <ctime>
 
 #include "common.h"
+#include "convar.h"
 #include "tier0/logging.h"
 #include "filesystem.h"
 #include "utils/logging.h"
+
+CConVar<bool> kz_log_to_file("kz_log_to_file", FCVAR_NONE, "Whether to mirror CS2KZ log output to a file in addons/cs2kz/logs.", true);
+CConVar<bool> kz_log_new_file_on_startup("kz_log_new_file_on_startup", FCVAR_NONE,
+										 "Whether to create a new log file on plugin startup, named with the current datetime.", true);
 
 // Helper to define a CS2KZ logging channel that is automatically tagged with
 // KZ_LOG_TAG. KZLoggingListener uses the tag to claim the message, so every
@@ -119,7 +124,7 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 	}
 }
 
-void KZLoggingListener::OpenFile()
+void KZLoggingListener::OpenFile(bool useDatetimeFilename)
 {
 	if (m_pFile)
 	{
@@ -131,7 +136,23 @@ void KZLoggingListener::OpenFile()
 	g_pFullFileSystem->CreateDirHierarchy(dir, nullptr);
 
 	char path[1024];
-	V_snprintf(path, sizeof(path), "%s/cs2kz.log", dir);
+	if (useDatetimeFilename)
+	{
+		std::time_t t = std::time(nullptr);
+		std::tm tm {};
+#ifdef _WIN32
+		localtime_s(&tm, &t);
+#else
+		localtime_r(&t, &tm);
+#endif
+		char ts[32];
+		std::strftime(ts, sizeof(ts), "%Y-%m-%d", &tm);
+		V_snprintf(path, sizeof(path), "%s/cs2kz_%s.log", dir, ts);
+	}
+	else
+	{
+		V_snprintf(path, sizeof(path), "%s/cs2kz.log", dir);
+	}
 	V_FixSlashes(path);
 	m_pFile = g_pFullFileSystem->Open(path, "a");
 }
