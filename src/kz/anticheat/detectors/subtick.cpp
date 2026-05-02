@@ -38,7 +38,7 @@ static_global bool VerifyCommand(const PlayerCommand &cmd)
 			{
 				expectedButtons &= ~(IN_FORWARD | IN_BACK);
 			}
-			else if (cmd.base().subtick_moves(i).has_analog_left_delta())
+			if (cmd.base().subtick_moves(i).has_analog_left_delta())
 			{
 				expectedButtons &= ~(IN_MOVELEFT | IN_MOVERIGHT);
 			}
