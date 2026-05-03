@@ -129,7 +129,9 @@ bool KZTriggerService::TouchTeleportTrigger(TriggerTouchTracker tracker)
 	if (!destinationHandle.IsValid() || !destination)
 	{
 		KZ_LOG_WARN(
-			LogChannel::Trigger, "Invalid teleport destination \"%s\" on trigger with hammerID %i.\n", tracker.kzTrigger->teleport.destination,
+			LogChannel::Trigger,
+			"Invalid teleport destination \"%s\" on trigger with hammerID %i.\n",
+			tracker.kzTrigger->teleport.destination,
 			tracker.kzTrigger->hammerId
 		);
 		return false;

@@ -110,7 +110,11 @@ static_function void ValidateQueriedCvar(CPlayerSlot nSlot, ECvarValueStatus eSt
 	if (eStatus != ECvarValueStatus::ValueIntact)
 	{
 		KZ_LOG_WARN(
-			LogChannel::AC, "Warning: Could not retrieve cvar value for player slot %d cvar %s, status %d\n", nSlot.Get(), pszCvarName, (int)eStatus
+			LogChannel::AC,
+			"Warning: Could not retrieve cvar value for player slot %d cvar %s, status %d\n",
+			nSlot.Get(),
+			pszCvarName,
+			(int)eStatus
 		);
 		return;
 	}

@@ -153,7 +153,8 @@ void PlayerManager::OnLateLoad()
 	if (!g_pNetworkServerService)
 	{
 		KZ_LOG_WARN(
-			LogChannel::Player, "Warning: Plugin lateloaded but g_pNetworkServerService is not available. Auth callbacks will not be registered.\n"
+			LogChannel::Player,
+			"Warning: Plugin lateloaded but g_pNetworkServerService is not available. Auth callbacks will not be registered.\n"
 		);
 		return;
 	}
