@@ -66,7 +66,7 @@ private:
 
 		virtual void OnError(u32 messageID, const KZ::api::messages::Error &error)
 		{
-			KZ_LOG_INFO(LogService::General, "[KZ::Global] Received error response to WebSocket message (id=%i): %s\n", messageID, error.message.c_str());
+			KZ_LOG_WARN(LogChannel::Global, "Received error response to WebSocket message (id=%i): %s\n", messageID, error.message.c_str());
 		}
 
 		virtual void OnCancelled(u32 messageID, CancelReason reason)
@@ -88,7 +88,7 @@ private:
 				break;
 			}
 
-			KZ_LOG_INFO(LogService::General, "[KZ::Global] Cancelled WebSocket message (id=%i, %s)\n", messageID, reasonStr);
+			KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Cancelled WebSocket message (id=%i, %s)\n", messageID, reasonStr);
 		}
 	};
 
@@ -110,7 +110,7 @@ public:
 			}
 			else
 			{
-				KZ_LOG_INFO(LogService::General, "[KZ::Global] Received unknown payload as WebSocket response. (id=%i)\n", messageID);
+				KZ_LOG_WARN(LogChannel::Global, "Received unknown payload as WebSocket response. (id=%i)\n", messageID);
 			}
 		}
 
@@ -385,7 +385,7 @@ private:
 		static bool SendMessageImpl(u32 &messageID, const char *&messageType, Json &messagePayload, const Payload &payload)
 		{
 			messageID = NextMessageID();
-			KZ_LOG_INFO(LogService::General, "[KZ::Global] assigned message ID %i\n", messageID);
+			KZ_LOG_DEBUG(LogChannel::Global, "assigned message ID %i\n", messageID);
 			messageType = Payload::Name();
 
 			if (!messagePayload.Set("id", messageID))
@@ -407,7 +407,7 @@ private:
 			socket->send(encodedPayload);
 
 			// clang-format off
-			KZ_LOG_INFO(LogService::General, "[KZ::Global] Sent WebSocket message. (id=%i, type=%s)\n"
+			KZ_LOG_DEBUG(LogChannel::Global, "Sent WebSocket message. (id=%i, type=%s)\n"
 					"------------------------------------\n"
 					"%s\n"
 					"------------------------------------\n",
@@ -532,7 +532,7 @@ public:
 
 		if (!currentMapIsGlobal)
 		{
-			KZ_LOG_INFO(LogService::General, "[KZ::Global] Cannot submit record on non-global map.\n");
+			KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Cannot submit record on non-global map.\n");
 			return SubmitRecordResult::MapNotGlobal;
 		}
 

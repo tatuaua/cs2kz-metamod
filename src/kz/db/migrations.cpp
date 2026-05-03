@@ -107,7 +107,7 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 	}
 	if (current > max)
 	{
-		KZ_LOG_INFO(LogService::General, "[KZ::DB] Fatal error: Number of current migrations are higher than the maximum!\n");
+		KZ_LOG_WARN(LogChannel::DB, "Fatal error: Number of current migrations are higher than the maximum!\n");
 		return;
 	}
 
@@ -132,12 +132,12 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 		}
 
 		u32 crc = CRC32_ProcessSingleBuffer(migrationQuery.c_str(), migrationQuery.length());
-		KZ_LOG_INFO(LogService::General, "crc = %u, currentCRC = %u\n", crc, currentCRC);
+		KZ_LOG_DEBUG(LogChannel::DB, "crc = %u, currentCRC = %u\n", crc, currentCRC);
 		if (currentCRC != crc)
 		{
-			KZ_LOG_INFO(LogService::General, "[KZ::DB] Fatal error: Migration query %s with CRC %u does not match the database's %u!\n", migrationQuery.c_str(), crc,
+			KZ_LOG_WARN(LogChannel::DB, "Fatal error: Migration query %s with CRC %u does not match the database's %u!\n", migrationQuery.c_str(), crc,
 				   currentCRC);
-			KZ_LOG_INFO(LogService::General, "[KZ::DB] Database migration failed. LocalDB will not be available.");
+			KZ_LOG_WARN(LogChannel::DB, "Database migration failed. LocalDB will not be available.");
 			databaseConnection->Destroy();
 			databaseConnection = nullptr;
 			return;
@@ -146,7 +146,7 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 
 	auto onSuccess = []()
 	{
-		KZ_LOG_INFO(LogService::General, "[KZ::DB] Database migration successful.\n");
+		KZ_LOG_INFO(LogChannel::DB, "Database migration successful.\n");
 		localDBConnected = true;
 		KZDatabaseService::SetupMap();
 		CALL_FORWARD(eventListeners, OnDatabaseSetup);
@@ -154,7 +154,7 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 
 	auto onFailure = []()
 	{
-		KZ_LOG_INFO(LogService::General, "[KZ::DB] Database migration failed. LocalDB will not be available.\n");
+		KZ_LOG_WARN(LogChannel::DB, "Database migration failed. LocalDB will not be available.\n");
 		databaseConnection->Destroy();
 		databaseConnection = nullptr;
 	};

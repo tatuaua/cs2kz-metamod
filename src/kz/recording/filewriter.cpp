@@ -21,7 +21,7 @@ void ReplayFileWriter::Start()
 	m_thread = std::make_unique<std::thread>(&ReplayFileWriter::ThreadRun, this);
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: File writer thread started\n");
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: File writer thread started\n");
 	}
 }
 
@@ -46,7 +46,7 @@ void ReplayFileWriter::Stop()
 
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: File writer thread stopped\n");
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: File writer thread stopped\n");
 	}
 }
 

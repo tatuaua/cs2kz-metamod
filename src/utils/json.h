@@ -29,19 +29,19 @@ public:
 	{
 		if (!this->inner.is_object())
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Cannot extract value from non-object.\n");
+			KZ_LOG_WARN(LogService::General, "[JSON] Cannot extract value from non-object.\n");
 			return false;
 		}
 
 		if (!this->inner.contains(key))
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Key `%s` does not exist.\n", key.c_str());
+			KZ_LOG_WARN(LogService::General, "[JSON] Key `%s` does not exist.\n", key.c_str());
 			return false;
 		}
 
 		if (!allowNull && this->inner[key].is_null())
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Key `%s` is null.\n", key.c_str());
+			KZ_LOG_WARN(LogService::General, "[JSON] Key `%s` is null.\n", key.c_str());
 			return false;
 		}
 
@@ -314,7 +314,7 @@ public:
 
 		if (!this->inner[key].is_boolean())
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Key `%s` is not a boolean.\n", key.c_str());
+			KZ_LOG_WARN(LogService::General, "[JSON] Key `%s` is not a boolean.\n", key.c_str());
 			return false;
 		}
 
@@ -331,7 +331,7 @@ public:
 
 		if (!this->inner[key].is_number_unsigned())
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Key `%s` is not an unsigned integer.\n", key.c_str());
+			KZ_LOG_WARN(LogService::General, "[JSON] Key `%s` is not an unsigned integer.\n", key.c_str());
 			return false;
 		}
 
@@ -348,7 +348,7 @@ public:
 
 		if (!this->inner[key].is_number_unsigned())
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Key `%s` is not an unsigned integer.\n", key.c_str());
+			KZ_LOG_WARN(LogService::General, "[JSON] Key `%s` is not an unsigned integer.\n", key.c_str());
 			return false;
 		}
 
@@ -365,7 +365,7 @@ public:
 
 		if (!this->inner[key].is_number_unsigned())
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Key `%s` is not an unsigned integer.\n", key.c_str());
+			KZ_LOG_WARN(LogService::General, "[JSON] Key `%s` is not an unsigned integer.\n", key.c_str());
 			return false;
 		}
 
@@ -382,7 +382,7 @@ public:
 
 		if (!this->inner[key].is_number())
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Key `%s` is not a float.\n", key.c_str());
+			KZ_LOG_WARN(LogService::General, "[JSON] Key `%s` is not a float.\n", key.c_str());
 			return false;
 		}
 
@@ -399,7 +399,7 @@ public:
 
 		if (!this->inner[key].is_number())
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Key `%s` is not a float.\n", key.c_str());
+			KZ_LOG_WARN(LogService::General, "[JSON] Key `%s` is not a float.\n", key.c_str());
 			return false;
 		}
 
@@ -416,7 +416,7 @@ public:
 
 		if (!this->inner[key].is_string())
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Key `%s` is not a string.\n", key.c_str());
+			KZ_LOG_WARN(LogService::General, "[JSON] Key `%s` is not a string.\n", key.c_str());
 			return false;
 		}
 
@@ -454,7 +454,7 @@ public:
 
 		if (!this->inner[key].is_array())
 		{
-			KZ_LOG_INFO(LogService::General, "[JSON] Key `%s` is not an array.\n", key.c_str());
+			KZ_LOG_WARN(LogService::General, "[JSON] Key `%s` is not an array.\n", key.c_str());
 			return false;
 		}
 

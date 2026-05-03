@@ -724,7 +724,7 @@ static_function bool Hook_ActivateServer()
 	u64 id = g_pKZUtils->GetCurrentMapWorkshopID();
 	u64 size = g_pKZUtils->GetCurrentMapSize();
 
-	KZ_LOG_INFO(LogService::General, "[KZ] Loading map %s, workshop ID %llu, size %llu\n", g_pKZUtils->GetCurrentMapVPK().Get(), id, size);
+	KZ_LOG_INFO(LogChannel::General, "[KZ] Loading map %s, workshop ID %llu, size %llu\n", g_pKZUtils->GetCurrentMapVPK().Get(), id, size);
 
 	RecordAnnounce::Clear();
 	KZ::misc::OnActivateServer();
@@ -735,7 +735,7 @@ static_function bool Hook_ActivateServer()
 
 	char md5[33];
 	g_pKZUtils->GetCurrentMapMD5(md5, sizeof(md5));
-	KZ_LOG_INFO(LogService::General, "[KZ] Map file md5: %s\n", md5);
+	KZ_LOG_INFO(LogChannel::General, "[KZ] Map file md5: %s\n", md5);
 
 	RETURN_META_VALUE(MRES_IGNORED, 1);
 }

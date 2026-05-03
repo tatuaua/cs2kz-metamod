@@ -23,11 +23,11 @@ RecordAnnounce::RecordAnnounce(KZPlayer *player)
 	{
 		if (!player->hasPrime)
 		{
-			KZ_LOG_INFO(LogService::General, "[KZ::Global - %u] Player %s does not have Prime, will not submit globally.\n", uid, player->GetName());
+			KZ_LOG_INFO(LogChannel::General, "[KZ::Global - %u] Player %s does not have Prime, will not submit globally.\n", uid, player->GetName());
 		}
 		if (!KZGlobalService::IsAvailable())
 		{
-			KZ_LOG_INFO(LogService::General, "[KZ::Global - %u] Global service is not available, will not submit globally.\n", uid);
+			KZ_LOG_INFO(LogChannel::General, "[KZ::Global - %u] Global service is not available, will not submit globally.\n", uid);
 		}
 	}
 	// Setup player
@@ -43,7 +43,7 @@ RecordAnnounce::RecordAnnounce(KZPlayer *player)
 	{
 		if (kz_debug_announce_global.Get())
 		{
-			KZ_LOG_INFO(LogService::General, "[KZ::Global - %u] Mode '%s' is not a valid global mode, will not submit globally.\n", uid, this->mode.name.c_str());
+			KZ_LOG_INFO(LogChannel::General, "[KZ::Global - %u] Mode '%s' is not a valid global mode, will not submit globally.\n", uid, this->mode.name.c_str());
 		}
 	}
 	this->mode.md5 = mode.md5;
@@ -94,12 +94,12 @@ RecordAnnounce::RecordAnnounce(KZPlayer *player)
 		{
 			if (kz_debug_announce_global.Get())
 			{
-				KZ_LOG_INFO(LogService::General, "[KZ::Global - %u] Course '%s' not found on global map '%s', will not submit globally.\n", uid, this->course.name.c_str(),
+				KZ_LOG_INFO(LogChannel::General, "[KZ::Global - %u] Course '%s' not found on global map '%s', will not submit globally.\n", uid, this->course.name.c_str(),
 							   currentMap->name.c_str());
-				KZ_LOG_INFO(LogService::General, "[KZ::Global - %u] Available courses:\n", uid);
+				KZ_LOG_INFO(LogChannel::General, "[KZ::Global - %u] Available courses:\n", uid);
 				for (const KZ::api::Map::Course &c : currentMap->courses)
 				{
-					KZ_LOG_INFO(LogService::General, " - %s\n", c.name.c_str());
+					KZ_LOG_INFO(LogChannel::General, " - %s\n", c.name.c_str());
 				}
 			}
 			global = false;
@@ -181,7 +181,7 @@ void RecordAnnounce::SubmitGlobal()
 
 	if (kz_debug_announce_global.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "[KZ::Global - %u] Global record submission result: %d\n", uid, static_cast<int>(submissionResult));
+		KZ_LOG_INFO(LogChannel::General, "[KZ::Global - %u] Global record submission result: %d\n", uid, static_cast<int>(submissionResult));
 	}
 	switch (submissionResult)
 	{
@@ -483,7 +483,7 @@ void RecordAnnounce::AnnounceGlobal()
 
 void RecordAnnounce::OnGlobalRecordSubmitted(const KZ::api::messages::NewRecordAck &ack, u32 uid)
 {
-	KZ_LOG_INFO(LogService::General, "[KZ::Global - %u] Record submitted under ID %s\n", uid, ack.recordId.c_str());
+	KZ_LOG_INFO(LogChannel::General, "[KZ::Global - %u] Record submitted under ID %s\n", uid, ack.recordId.c_str());
 
 	RecordAnnounce *rec = RecordAnnounce::Get(uid);
 	if (!rec)

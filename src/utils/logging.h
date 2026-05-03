@@ -32,7 +32,7 @@ DECLARE_LOGGING_CHANNEL(LOG_KZ_TIP);
 DECLARE_LOGGING_CHANNEL(LOG_KZ_TRIGGER);
 
 // Enum for service selection - maps to individual channels
-enum class LogService
+enum class LogChannel
 {
 	General,
 	AC,
@@ -56,16 +56,16 @@ enum class LogService
 };
 
 // Get the logging channel for a given service.
-LoggingChannelID_t GetServiceChannel(LogService service);
+LoggingChannelID_t GetServiceChannel(LogChannel service);
 
 // Logging macros dispatch to the appropriate service channel.
 // The KZLoggingListener extracts the service name from the channel name (e.g. "CS2KZ.Timer")
 // and includes it as a "[Service]" prefix in the output.
 //
-//     KZ_LOG_INFO (LogService::Timer, "started timer for %s", name);
-//     KZ_LOG_DEBUG(LogService::AC,    "subtick check failed: %d", flags);
-//     KZ_LOG_WARN (LogService::DB,    "query took %.2fs", seconds);
-//     KZ_LOG_ERROR(LogService::Misc,  "unrecoverable: %s", err);
+//     KZ_LOG_INFO (LogChannel::Timer, "started timer for %s", name);
+//     KZ_LOG_DEBUG(LogChannel::AC,    "subtick check failed: %d", flags);
+//     KZ_LOG_WARN (LogChannel::DB,    "query took %.2fs", seconds);
+//     KZ_LOG_ERROR(LogChannel::Misc,  "unrecoverable: %s", err);
 //
 // Variadic args are not evaluated when the channel is below the configured
 // verbosity, so debug messages are essentially free in release configurations.

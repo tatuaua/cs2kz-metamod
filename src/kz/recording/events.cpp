@@ -126,7 +126,7 @@ void KZRecordingService::OnTimerStart()
 	this->runRecorders.push_back(RunRecorder(this->player));
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: Timer start\n");
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: Timer start\n");
 	}
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_START, this->player->timerService->GetTime(),
 						   this->player->timerService->GetCourse()->id);
@@ -142,7 +142,7 @@ void KZRecordingService::OnTimerStop()
 	}
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: Timer stop\n");
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: Timer stop\n");
 	}
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_STOP, this->player->timerService->GetTime());
 
@@ -169,7 +169,7 @@ void KZRecordingService::OnTimerEnd()
 	}
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: Timer end\n");
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: Timer end\n");
 	}
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_END, this->player->timerService->GetTime(),
 						   this->player->timerService->GetCourse()->id);
@@ -195,7 +195,7 @@ void KZRecordingService::OnPause()
 	}
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: Timer pause\n");
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: Timer pause\n");
 	}
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_PAUSE,
 						   this->player->timerService->GetTimerRunning() ? this->player->timerService->GetTime() : 0.0f);
@@ -209,7 +209,7 @@ void KZRecordingService::OnResume()
 	}
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: Timer resume\n");
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: Timer resume\n");
 	}
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_RESUME,
 						   this->player->timerService->GetTimerRunning() ? this->player->timerService->GetTime() : 0.0f);
@@ -223,7 +223,7 @@ void KZRecordingService::OnSplit(i32 split)
 	}
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: Timer split %d\n", split);
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: Timer split %d\n", split);
 	}
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_SPLIT, this->player->timerService->GetTime(), split);
 }
@@ -236,7 +236,7 @@ void KZRecordingService::OnCPZ(i32 cpz)
 	}
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: Checkpoint %d\n", cpz);
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: Checkpoint %d\n", cpz);
 	}
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_CPZ, this->player->timerService->GetTime(), cpz);
 }
@@ -249,7 +249,7 @@ void KZRecordingService::OnStage(i32 stage)
 	}
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: Stage %d\n", stage);
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: Stage %d\n", stage);
 	}
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_STAGE, this->player->timerService->GetTime(), stage);
 }
@@ -262,7 +262,7 @@ void KZRecordingService::OnTeleport(const Vector *origin, const QAngle *angles, 
 	}
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: Teleport\n");
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: Teleport\n");
 	}
 	this->InsertTeleportEvent(origin, angles, velocity);
 }
@@ -290,7 +290,7 @@ void KZRecordingService::OnJumpFinish(Jump *jump)
 	}
 	if (kz_replay_recording_debug.Get())
 	{
-		KZ_LOG_INFO(LogService::General, "kz_replay_recording_debug: Jump finish\n");
+		KZ_LOG_INFO(LogChannel::General, "kz_replay_recording_debug: Jump finish\n");
 	}
 	this->EnsureCircularRecorderInitialized();
 	RpJumpStats rpJump;
