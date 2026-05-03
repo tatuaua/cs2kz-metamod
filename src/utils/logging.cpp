@@ -8,7 +8,7 @@
 
 CConVar<bool> kz_log_to_file("kz_log_to_file", FCVAR_NONE, "Whether to mirror CS2KZ log output to a file in addons/cs2kz/logs.", true);
 CConVar<bool> kz_log_new_file_on_startup("kz_log_new_file_on_startup", FCVAR_NONE,
-										 "Whether to create a new log file on plugin startup, named with the current datetime.", true);
+										 "Whether to create a new log file on plugin startup, named with the startup datetime.", true);
 
 struct KZChannel_t
 {
