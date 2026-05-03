@@ -48,7 +48,12 @@ bool KZPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool
 	setlocale(LC_ALL, "en_US.utf8");
 	PLUGIN_SAVEVARS();
 
+	RegisterKZLoggingChannels();
 	LoggingSystem_RegisterLoggingListener(&this->loggingListener);
+
+	KZ_LOG_DEBUG(LogChannel::General, "test debug");
+	KZ_LOG_WARN(LogChannel::General, "test warning");
+	KZ_LOG_INFO(LogChannel::General, "test info");
 
 	if (!utils::Initialize(ismm, error, maxlen))
 	{

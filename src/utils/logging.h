@@ -10,27 +10,6 @@ extern CConVar<bool> kz_log_new_file_on_startup;
 // KZLoggingListener uses this to filter which channels it processes.
 #define KZ_LOG_TAG "CS2KZ"
 
-// Separate logging channels for each service, plus helpers.
-DECLARE_LOGGING_CHANNEL(LOG_KZ_GENERAL);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_AC);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_DB);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_GLOBAL);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_LANGUAGE);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_MAPPINGAPI);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_MISC);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_MODE);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_MOVEMENT);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_OPTION);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_PLAYER);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_PROFILE);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_RACING);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_RECORDING);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_REPLAYS);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_STYLE);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_TIMER);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_TIP);
-DECLARE_LOGGING_CHANNEL(LOG_KZ_TRIGGER);
-
 // Enum for service selection - maps to individual channels
 enum class LogChannel
 {
@@ -55,20 +34,15 @@ enum class LogChannel
 	Trigger,
 };
 
+// Register all CS2KZ channels from the channel table.
+void RegisterKZLoggingChannels();
+
 // Get the logging channel for a given service.
 LoggingChannelID_t GetServiceChannel(LogChannel service);
 
-// Logging macros dispatch to the appropriate service channel.
-// The KZLoggingListener extracts the service name from the channel name (e.g. "CS2KZ.Timer")
-// and includes it as a "[Service]" prefix in the output.
-//
-//     KZ_LOG_INFO (LogChannel::Timer, "started timer for %s", name);
-//     KZ_LOG_DEBUG(LogChannel::AC,    "subtick check failed: %d", flags);
-//     KZ_LOG_WARN (LogChannel::DB,    "query took %.2fs", seconds);
-//     KZ_LOG_ERROR(LogChannel::Misc,  "unrecoverable: %s", err);
-//
-// Variadic args are not evaluated when the channel is below the configured
-// verbosity, so debug messages are essentially free in release configurations.
+// Get the name of a logging channel
+const char *GetServiceChannelName(LoggingChannelID_t channelID);
+
 #define KZ_LOG_INFO(service, fmt, ...)  Log_Msg(GetServiceChannel(service), fmt, ##__VA_ARGS__)
 #define KZ_LOG_DEBUG(service, fmt, ...) InternalMsg(GetServiceChannel(service), LS_DETAILED, fmt, ##__VA_ARGS__)
 #define KZ_LOG_WARN(service, fmt, ...)  Log_Warning(GetServiceChannel(service), fmt, ##__VA_ARGS__)
