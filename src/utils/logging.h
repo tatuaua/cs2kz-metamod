@@ -10,13 +10,28 @@ extern CConVar<bool> kz_log_new_file_on_startup;
 // KZLoggingListener uses this to filter which channels it processes.
 #define KZ_LOG_TAG "CS2KZ"
 
-// Single CS2KZ logging channel. Service distinction is encoded directly into
-// the message via a "[Service] " prefix appended by the KZ_LOG_* macros.
-DECLARE_LOGGING_CHANNEL(LOG_KZ);
+// Separate logging channels for each service, plus helpers.
+DECLARE_LOGGING_CHANNEL(LOG_KZ_GENERAL);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_AC);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_DB);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_GLOBAL);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_LANGUAGE);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_MAPPINGAPI);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_MISC);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_MODE);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_MOVEMENT);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_OPTION);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_PLAYER);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_PROFILE);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_RACING);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_RECORDING);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_REPLAYS);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_STYLE);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_TIMER);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_TIP);
+DECLARE_LOGGING_CHANNEL(LOG_KZ_TRIGGER);
 
-// Logical subsystems that can tag log messages. Add new entries here when
-// introducing a new service so every call site is discoverable and
-// refactorable.
+// Enum for service selection - maps to individual channels
 enum class LogService
 {
 	General,
@@ -40,23 +55,24 @@ enum class LogService
 	Trigger,
 };
 
-const char *LogServiceName(LogService service);
+// Get the logging channel for a given service.
+LoggingChannelID_t GetServiceChannel(LogService service);
 
-// Logging macros. The first argument is a LogService enumerator; its name is
-// prepended to the message as "[Service] " so a single channel can carry
-// per-subsystem context.
+// Logging macros dispatch to the appropriate service channel.
+// The KZLoggingListener extracts the service name from the channel name (e.g. "CS2KZ.Timer")
+// and includes it as a "[Service]" prefix in the output.
 //
-//     KZ_LOG_INFO (LogService::Timer, "started timer for %s",  name);
+//     KZ_LOG_INFO (LogService::Timer, "started timer for %s", name);
 //     KZ_LOG_DEBUG(LogService::AC,    "subtick check failed: %d", flags);
 //     KZ_LOG_WARN (LogService::DB,    "query took %.2fs", seconds);
 //     KZ_LOG_ERROR(LogService::Misc,  "unrecoverable: %s", err);
 //
 // Variadic args are not evaluated when the channel is below the configured
 // verbosity, so debug messages are essentially free in release configurations.
-#define KZ_LOG_INFO(service, fmt, ...)  Log_Msg(LOG_KZ, "[%s] " fmt, LogServiceName(service), ##__VA_ARGS__)
-#define KZ_LOG_DEBUG(service, fmt, ...) InternalMsg(LOG_KZ, LS_DETAILED, "[%s] " fmt, LogServiceName(service), ##__VA_ARGS__)
-#define KZ_LOG_WARN(service, fmt, ...)  Log_Warning(LOG_KZ, "[%s] " fmt, LogServiceName(service), ##__VA_ARGS__)
-#define KZ_LOG_ERROR(service, fmt, ...) Log_Error(LOG_KZ, "[%s] " fmt, LogServiceName(service), ##__VA_ARGS__)
+#define KZ_LOG_INFO(service, fmt, ...)  Log_Msg(GetServiceChannel(service), fmt, ##__VA_ARGS__)
+#define KZ_LOG_DEBUG(service, fmt, ...) InternalMsg(GetServiceChannel(service), LS_DETAILED, fmt, ##__VA_ARGS__)
+#define KZ_LOG_WARN(service, fmt, ...)  Log_Warning(GetServiceChannel(service), fmt, ##__VA_ARGS__)
+#define KZ_LOG_ERROR(service, fmt, ...) Log_Error(GetServiceChannel(service), fmt, ##__VA_ARGS__)
 
 #include "filesystem.h"
 

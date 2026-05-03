@@ -18,62 +18,52 @@ CConVar<bool> kz_log_new_file_on_startup("kz_log_new_file_on_startup", FCVAR_NON
 	ADD_LOGGING_CHANNEL_TAG(KZ_LOG_TAG);                                     \
 	END_DEFINE_LOGGING_CHANNEL()
 
-DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ, "CS2KZ", LV_DETAILED);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_GENERAL,    "CS2KZ.General",    LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_AC,         "CS2KZ.AC",         LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_DB,         "CS2KZ.DB",         LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_GLOBAL,     "CS2KZ.Global",     LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_LANGUAGE,   "CS2KZ.Language",   LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_MAPPINGAPI, "CS2KZ.MappingAPI", LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_MISC,       "CS2KZ.Misc",       LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_MODE,       "CS2KZ.Mode",       LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_MOVEMENT,   "CS2KZ.Movement",   LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_OPTION,     "CS2KZ.Option",     LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_PLAYER,     "CS2KZ.Player",     LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_PROFILE,    "CS2KZ.Profile",    LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_RACING,     "CS2KZ.Racing",     LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_RECORDING,  "CS2KZ.Recording",  LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_REPLAYS,    "CS2KZ.Replays",    LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_STYLE,      "CS2KZ.Style",      LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_TIMER,      "CS2KZ.Timer",      LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_TIP,        "CS2KZ.Tip",        LV_DEFAULT);
+DEFINE_KZ_LOGGING_CHANNEL(LOG_KZ_TRIGGER,    "CS2KZ.Trigger",    LV_DEFAULT);
 
-namespace
+// Map LogService enum to logging channels
+LoggingChannelID_t GetServiceChannel(LogService service)
 {
-	struct LogServiceEntry
+	switch (service)
 	{
-		LogService service;
-		const char *name;
-	};
-
-	constexpr LogServiceEntry kLogServiceTable[] = {
-		{LogService::General,    "General"   },
-		{LogService::AC,         "AC"        },
-		{LogService::DB,         "DB"        },
-		{LogService::Global,     "Global"    },
-		{LogService::Language,   "Language"  },
-		{LogService::MappingAPI, "MappingAPI"},
-		{LogService::Misc,       "Misc"      },
-		{LogService::Mode,       "Mode"      },
-		{LogService::Movement,   "Movement"  },
-		{LogService::Option,     "Option"    },
-		{LogService::Player,     "Player"    },
-		{LogService::Profile,    "Profile"   },
-		{LogService::Racing,     "Racing"    },
-		{LogService::Recording,  "Recording" },
-		{LogService::Replays,    "Replays"   },
-		{LogService::Style,      "Style"     },
-		{LogService::Timer,      "Timer"     },
-		{LogService::Tip,        "Tip"       },
-		{LogService::Trigger,    "Trigger"   },
-	};
-} // namespace
-
-const char *LogServiceName(LogService service)
-{
-	for (const auto &entry : kLogServiceTable)
-	{
-		if (entry.service == service)
-		{
-			return entry.name;
-		}
+		case LogService::General:    return LOG_KZ_GENERAL;
+		case LogService::AC:         return LOG_KZ_AC;
+		case LogService::DB:         return LOG_KZ_DB;
+		case LogService::Global:     return LOG_KZ_GLOBAL;
+		case LogService::Language:   return LOG_KZ_LANGUAGE;
+		case LogService::MappingAPI: return LOG_KZ_MAPPINGAPI;
+		case LogService::Misc:       return LOG_KZ_MISC;
+		case LogService::Mode:       return LOG_KZ_MODE;
+		case LogService::Movement:   return LOG_KZ_MOVEMENT;
+		case LogService::Option:     return LOG_KZ_OPTION;
+		case LogService::Player:     return LOG_KZ_PLAYER;
+		case LogService::Profile:    return LOG_KZ_PROFILE;
+		case LogService::Racing:     return LOG_KZ_RACING;
+		case LogService::Recording:  return LOG_KZ_RECORDING;
+		case LogService::Replays:    return LOG_KZ_REPLAYS;
+		case LogService::Style:      return LOG_KZ_STYLE;
+		case LogService::Timer:      return LOG_KZ_TIMER;
+		case LogService::Tip:        return LOG_KZ_TIP;
+		case LogService::Trigger:    return LOG_KZ_TRIGGER;
 	}
-	return "Unknown";
-}
-
-static bool ParseLogService(const char *name, LogService &out)
-{
-	for (const auto &entry : kLogServiceTable)
-	{
-		if (V_stricmp(name, entry.name) == 0)
-		{
-			out = entry.service;
-			return true;
-		}
-	}
-	return false;
+	return LOG_KZ_GENERAL;
 }
 
 void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMessage)
@@ -98,15 +88,12 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 	}
 
 	const CLoggingSystem::LoggingChannel_t *pChannel = LoggingSystem_GetChannel(pContext->m_ChannelID);
-	const char *channelName = pChannel ? pChannel->m_Name : "CS2KZ";
+	const char *channelName = pChannel ? pChannel->m_Name : "CS2KZ.General";
 
-	ConColorMsg(color, "[%s] [%s] %s", channelName, level, pMessage);
 	size_t msgLen = V_strlen(pMessage);
 	bool needsNewline = (msgLen == 0 || pMessage[msgLen - 1] != '\n');
-	if (needsNewline)
-	{
-		ConColorMsg(color, "\n");
-	}
+
+	ConColorMsg(color, "[%s] [%s] %s%s", channelName, level, pMessage, needsNewline ? "\n" : "");
 
 	if (m_pFile)
 	{
@@ -214,17 +201,55 @@ CON_COMMAND_F(kz_log_test, "Emit a test log message. Usage: kz_log_test <service
 	if (args.ArgC() != 3)
 	{
 		Msg("Usage: kz_log_test <service> <debug|info|warn|error>\n");
-		Msg("  <service> is a LogService name (e.g. Timer, AC, DB, General).\n");
+		Msg("  <service> is a service name (e.g. General, Timer, AC, DB).\n");
 		return;
 	}
 
 	const char *serviceArg = args.Arg(1);
 	const char *level = args.Arg(2);
 
-	LogService service;
-	if (!ParseLogService(serviceArg, service))
+	LogService service = LogService::General;
+	if (V_stricmp(serviceArg, "General") == 0)
+		service = LogService::General;
+	else if (V_stricmp(serviceArg, "AC") == 0)
+		service = LogService::AC;
+	else if (V_stricmp(serviceArg, "DB") == 0)
+		service = LogService::DB;
+	else if (V_stricmp(serviceArg, "Global") == 0)
+		service = LogService::Global;
+	else if (V_stricmp(serviceArg, "Language") == 0)
+		service = LogService::Language;
+	else if (V_stricmp(serviceArg, "MappingAPI") == 0)
+		service = LogService::MappingAPI;
+	else if (V_stricmp(serviceArg, "Misc") == 0)
+		service = LogService::Misc;
+	else if (V_stricmp(serviceArg, "Mode") == 0)
+		service = LogService::Mode;
+	else if (V_stricmp(serviceArg, "Movement") == 0)
+		service = LogService::Movement;
+	else if (V_stricmp(serviceArg, "Option") == 0)
+		service = LogService::Option;
+	else if (V_stricmp(serviceArg, "Player") == 0)
+		service = LogService::Player;
+	else if (V_stricmp(serviceArg, "Profile") == 0)
+		service = LogService::Profile;
+	else if (V_stricmp(serviceArg, "Racing") == 0)
+		service = LogService::Racing;
+	else if (V_stricmp(serviceArg, "Recording") == 0)
+		service = LogService::Recording;
+	else if (V_stricmp(serviceArg, "Replays") == 0)
+		service = LogService::Replays;
+	else if (V_stricmp(serviceArg, "Style") == 0)
+		service = LogService::Style;
+	else if (V_stricmp(serviceArg, "Timer") == 0)
+		service = LogService::Timer;
+	else if (V_stricmp(serviceArg, "Tip") == 0)
+		service = LogService::Tip;
+	else if (V_stricmp(serviceArg, "Trigger") == 0)
+		service = LogService::Trigger;
+	else
 	{
-		Msg("[kz_log_test] Unknown service '%s'. See LogService in utils/logging.h for valid names.\n", serviceArg);
+		Msg("[kz_log_test] Unknown service '%s'. Valid services: General, AC, DB, Global, Language, MappingAPI, Misc, Mode, Movement, Option, Player, Profile, Racing, Recording, Replays, Style, Timer, Tip, Trigger.\n", serviceArg);
 		return;
 	}
 
