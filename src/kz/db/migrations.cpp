@@ -135,8 +135,8 @@ void KZDatabaseService::CheckMigrations(std::vector<ISQLQuery *> queries)
 		KZ_LOG_DEBUG(LogChannel::DB, "crc = %u, currentCRC = %u\n", crc, currentCRC);
 		if (currentCRC != crc)
 		{
-			KZ_LOG_WARN(LogChannel::DB, "Fatal error: Migration query %s with CRC %u does not match the database's %u!\n", migrationQuery.c_str(), crc,
-				   currentCRC);
+			KZ_LOG_WARN(LogChannel::DB, "Fatal error: Migration query %s with CRC %u does not match the database's %u!\n", migrationQuery.c_str(),
+						crc, currentCRC);
 			KZ_LOG_WARN(LogChannel::DB, "Database migration failed. LocalDB will not be available.");
 			databaseConnection->Destroy();
 			databaseConnection = nullptr;

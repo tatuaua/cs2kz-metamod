@@ -113,7 +113,8 @@ void KZProfileService::RequestRating()
 	}
 	std::string url = apiURL + "/players/" + std::to_string(steamID64);
 	HTTP::Request request(HTTP::Method::GET, url);
-	KZ_LOG_DEBUG(LogChannel::Profile, "Requesting rating for player %s (%llu) in mode %d.\n", this->player->GetName(), steamID64, static_cast<u8>(mode));
+	KZ_LOG_DEBUG(LogChannel::Profile, "Requesting rating for player %s (%llu) in mode %d.\n", this->player->GetName(), steamID64,
+				 static_cast<u8>(mode));
 	auto callback = [steamID64, mode](HTTP::Response response)
 	{
 		KZ_LOG_DEBUG(LogChannel::Profile, "Received response for player %llu: status %d.\n", steamID64, response.status);
