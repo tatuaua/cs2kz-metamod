@@ -255,19 +255,19 @@ CON_COMMAND_F(kz_log_test, "Emit a test log message. Usage: kz_log_test <service
 
 	if (V_stricmp(level, "debug") == 0)
 	{
-		KZ_LOG_DEBUG(service, "kz_log_test: debug message\n");
+		KZ_LOG_DEBUG(channel, "kz_log_test: debug message\n");
 	}
 	else if (V_stricmp(level, "info") == 0)
 	{
-		KZ_LOG_INFO(service, "kz_log_test: info message\n");
+		KZ_LOG_INFO(channel, "kz_log_test: info message\n");
 	}
 	else if (V_stricmp(level, "warn") == 0 || V_stricmp(level, "warning") == 0)
 	{
-		KZ_LOG_WARN(service, "kz_log_test: warning message\n");
+		KZ_LOG_WARN(channel, "kz_log_test: warning message\n");
 	}
 	else if (V_stricmp(level, "error") == 0)
 	{
-		KZ_LOG_ERROR(service, "kz_log_test: error message\n");
+		KZ_LOG_ERROR(channel, "kz_log_test: error message\n");
 	}
 	else
 	{

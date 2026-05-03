@@ -282,7 +282,7 @@ bool Recorder::WriteToFile()
 	FileHandle_t file = g_pFullFileSystem->Open(tempFilename, "wb", "GAME");
 	if (!file)
 	{
-		KZ_LOG_INFO(LogChannel::Recording, "Failed to open replay file for writing: %s\n", tempFilename);
+		KZ_LOG_WARN(LogChannel::Recording, "Failed to open replay file for writing: %s\n", tempFilename);
 		return false;
 	}
 
@@ -330,7 +330,7 @@ bool Recorder::WriteToFile()
 	// Rename temp file to final name
 	if (!g_pFullFileSystem->RenameFile(tempFilename, finalFilename, "GAME"))
 	{
-		KZ_LOG_INFO(LogChannel::Recording, "Failed to rename replay file from %s to %s\n", tempFilename, finalFilename);
+		KZ_LOG_WARN(LogChannel::Recording, "Failed to rename replay file from %s to %s\n", tempFilename, finalFilename);
 		g_pFullFileSystem->RemoveFile(tempFilename, "GAME");
 		return false;
 	}
@@ -349,7 +349,7 @@ i32 Recorder::WriteHeader(FileHandle_t file)
 	std::string serialized;
 	if (!this->replayHeader.SerializeToString(&serialized))
 	{
-		KZ_LOG_INFO(LogChannel::Recording, "[KZ] Failed to serialize replay header protobuf\n");
+		KZ_LOG_WARN(LogChannel::Recording, "Failed to serialize replay header protobuf\n");
 		return 0;
 	}
 	u32 size = static_cast<u32>(serialized.size());
