@@ -25,6 +25,7 @@ public:
 
 	void ResetShowPanel();
 	void TogglePanel();
+	void ToggleCompactPanel();
 
 	void OnPhysicsSimulate()
 	{
@@ -67,6 +68,8 @@ public:
 	{
 		return this->showPanel;
 	}
+
+	bool IsCompactPanel();
 
 	void OnTimerStopped(f64 currentTimeWhenTimerStopped);
 

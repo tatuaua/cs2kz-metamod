@@ -217,18 +217,9 @@ namespace KZ::replaysystem::playback
 		}
 
 		TickData *tickData = &replay->tickData[replay->currentTick];
-		if (tickData->forward)
-		{
-			command->mutable_base()->set_forwardmove(tickData->forward);
-		}
-		if (tickData->left)
-		{
-			command->mutable_base()->set_leftmove(tickData->left);
-		}
-		if (tickData->up)
-		{
-			command->mutable_base()->set_upmove(tickData->up);
-		}
+		command->mutable_base()->set_forwardmove(tickData->forward);
+		command->mutable_base()->set_leftmove(tickData->left);
+		command->mutable_base()->set_upmove(tickData->up);
 
 		command->mutable_base()->mutable_viewangles()->Clear();
 		if (tickData->pre.angles.x != 0)
