@@ -64,7 +64,7 @@ void KZTipService::LoadTips()
 			{
 				if (!pTipKeyValues->LoadFromFile(g_pFullFileSystem, fullPath, nullptr))
 				{
-					KZ_LOG_INFO(LogChannel::General, "Failed to load %s\n", fileName);
+					KZ_LOG_INFO(LogChannel::Tip, "Failed to load %s\n", fileName);
 				}
 			}
 			fileName = g_pFullFileSystem->FindNext(findHandle);

@@ -95,7 +95,7 @@ static_global bool HasExcessiveSubtickMovesWithAngles(const PlayerCommand &cmd)
 			{
 				if (kz_ac_subtick_debug.GetBool())
 				{
-					KZ_LOG_INFO(LogChannel::General, "Suspicious subtick moves with angles detected in command %d: %s\n", cmd.cmdNum, cmd.DebugString().c_str());
+					KZ_LOG_INFO(LogChannel::AC, "Suspicious subtick moves with angles detected in command %d: %s\n", cmd.cmdNum, cmd.DebugString().c_str());
 				}
 				return true;
 			}

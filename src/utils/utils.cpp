@@ -657,7 +657,7 @@ void utils::ResetMapIfEmpty()
 		return;
 	}
 
-	KZ_LOG_INFO(LogChannel::General, "[KZ] Server is empty, triggering map reload...\n");
+	KZ_LOG_INFO(LogChannel::General, "Server is empty, triggering map reload...\n");
 	utils::ResetMap();
 }
 
@@ -668,7 +668,7 @@ void utils::ResetMap()
 	{
 		if (!g_pKZUtils->GetGlobals() || !g_pKZUtils->GetGlobals()->mapname.ToCStr() || g_pKZUtils->GetGlobals()->mapname.ToCStr()[0] == 0)
 		{
-			KZ_LOG_INFO(LogChannel::General, "[KZ] Warning: Map name is empty, cannot reload the current map! Defaulting to de_dust2...\n");
+			KZ_LOG_WARN(LogChannel::General, "Warning: Map name is empty, cannot reload the current map! Defaulting to de_dust2...\n");
 			V_snprintf(cmd, sizeof(cmd), "changelevel de_dust2");
 		}
 		else

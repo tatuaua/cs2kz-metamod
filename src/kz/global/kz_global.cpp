@@ -23,13 +23,13 @@ static_function bool GetApiUrl(std::string &url)
 
 	if (url.empty())
 	{
-		KZ_LOG_INFO(LogChannel::General, "[KZ::Global] `apiUrl` is empty. GlobalService will be disabled.\n");
+		KZ_LOG_INFO(LogChannel::Global, "`apiUrl` is empty. GlobalService will be disabled.\n");
 		return false;
 	}
 
 	if (url.size() < 4 || url.substr(0, 4) != "http")
 	{
-		KZ_LOG_INFO(LogChannel::General, "[KZ::Global] `apiUrl` is invalid. GlobalService will be disabled.\n");
+		KZ_LOG_INFO(LogChannel::Global, "`apiUrl` is invalid. GlobalService will be disabled.\n");
 		return false;
 	}
 
@@ -51,7 +51,7 @@ static_function bool GetApiKey(std::string &key)
 
 	if (key.empty())
 	{
-		KZ_LOG_INFO(LogChannel::General, "[KZ::Global] `apiKey` is empty. GlobalService will be disabled.\n");
+		KZ_LOG_INFO(LogChannel::Global, "`apiKey` is empty. GlobalService will be disabled.\n");
 		return false;
 	}
 
@@ -65,7 +65,7 @@ void KZGlobalService::Init()
 		return;
 	}
 
-	KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Initializing GlobalService...\n");
+	KZ_LOG_INFO(LogChannel::Global, "Initializing GlobalService...\n");
 
 	std::string apiUrl;
 	if (!GetApiUrl(apiUrl))
@@ -73,7 +73,7 @@ void KZGlobalService::Init()
 		KZGlobalService::state.store(KZGlobalService::State::Disconnected);
 		return;
 	}
-	KZ_LOG_INFO(LogChannel::General, "[KZ::Global] API URL is `%s`.\n", apiUrl.c_str());
+	KZ_LOG_INFO(LogChannel::Global, "API URL is `%s`.\n", apiUrl.c_str());
 
 	std::string apiKey;
 	if (!GetApiKey(apiKey))
@@ -120,7 +120,7 @@ void KZGlobalService::UpdateRecordCache()
 
 	if (currentMapID == 0)
 	{
-		KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Current map is not global; not updating record cache\n");
+		KZ_LOG_INFO(LogChannel::Global, "Current map is not global; not updating record cache\n");
 		return;
 	}
 
@@ -159,7 +159,7 @@ void KZGlobalService::OnMapInfo(const std::optional<KZ::api::Map> &mapInfo, std:
 
 	if (mapNameOk && currentMapName.Get() != sentMapName)
 	{
-		KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Map changed since MapChange was sent (sent '%s', current '%s'); re-sending.\n", sentMapName.c_str(),
+		KZ_LOG_INFO(LogChannel::Global, "Map changed since MapChange was sent (sent '%s', current '%s'); re-sending.\n", sentMapName.c_str(),
 			   currentMapName.Get());
 		KZGlobalService::SendMapChange();
 		return;
@@ -169,21 +169,21 @@ void KZGlobalService::OnMapInfo(const std::optional<KZ::api::Map> &mapInfo, std:
 	{
 		if (mapNameOk)
 		{
-			KZ_LOG_INFO(LogChannel::General, "[KZ::Global] %s is approved.\n", mapInfo->name.c_str());
+			KZ_LOG_INFO(LogChannel::Global, "%s is approved.\n", mapInfo->name.c_str());
 			for (const auto &course : mapInfo->courses)
 			{
 				KZ::course::UpdateCourseGlobalID(course.name.c_str(), course.id);
-				KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Registered course '%s' with ID %i!\n", course.name.c_str(), course.id);
+				KZ_LOG_INFO(LogChannel::Global, "Registered course '%s' with ID %i!\n", course.name.c_str(), course.id);
 			}
 		}
 		else
 		{
-			KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Failed to get current map name.\n");
+			KZ_LOG_INFO(LogChannel::Global, "Failed to get current map name.\n");
 		}
 	}
 	else
 	{
-		KZ_LOG_INFO(LogChannel::General, "[KZ::Global] %s is not approved.\n", sentMapName.c_str());
+		KZ_LOG_INFO(LogChannel::Global, "%s is not approved.\n", sentMapName.c_str());
 	}
 
 	{
@@ -244,7 +244,7 @@ void KZGlobalService::OnActivateServer()
 	{
 		case KZGlobalService::State::Configured:
 		{
-			KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Starting WebSocket...\n");
+			KZ_LOG_INFO(LogChannel::Global, "Starting WebSocket...\n");
 			KZGlobalService::WS::socket->start();
 			KZGlobalService::state.store(KZGlobalService::State::Connecting);
 		}
@@ -294,7 +294,7 @@ void KZGlobalService::OnServerGamePostSimulate()
 				std::lock_guard _guard(KZGlobalService::callbacks.mutex);
 				if (!KZGlobalService::callbacks.queue.empty())
 				{
-					KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Running callbacks...\n");
+					KZ_LOG_INFO(LogChannel::Global, "Running callbacks...\n");
 					for (const std::function<void()> &callback : KZGlobalService::callbacks.queue)
 					{
 						callback();
@@ -322,7 +322,7 @@ void KZGlobalService::OnServerGamePostSimulate()
 						continue;
 					}
 
-					KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Running callback for message %i...\n", it->id);
+					KZ_LOG_INFO(LogChannel::Global, "Running callback for message %i...\n", it->id);
 
 					if (it->isError)
 					{
@@ -398,7 +398,7 @@ static_function void OnPlayerRecordsReceived(const KZ::api::messages::PlayerReco
 
 void KZGlobalService::OnPlayerJoinAck(const KZ::api::messages::PlayerJoinAck &ack, u64 steamID)
 {
-	KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Received `player_join_ack` response. (player.id=%llu, player.is_banned=%s, player.has_prime=%s)\n", steamID,
+	KZ_LOG_INFO(LogChannel::Global, "Received `player_join_ack` response. (player.id=%llu, player.is_banned=%s, player.has_prime=%s)\n", steamID,
 		   ack.isBanned ? "true" : "false", ack.hasPrime ? "true" : "false");
 
 	KZPlayer *player = g_pKZPlayerManager->SteamIdToPlayer(steamID);
@@ -499,7 +499,7 @@ void KZGlobalService::WS::OnMessage(const ix::WebSocketMessagePtr &message)
 			return;
 
 		case ix::WebSocketMessageType::Pong:
-			KZ_LOG_DEBUG(LogChannel::General, "Received pong WebSocket message.\n");
+			KZ_LOG_DEBUG(LogChannel::Global, "Received pong WebSocket message.\n");
 			return;
 	}
 
@@ -513,7 +513,7 @@ void KZGlobalService::WS::OnMessage(const ix::WebSocketMessagePtr &message)
 
 	if (!payload.IsValid())
 	{
-		KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Incoming WebSocket message is not valid JSON.\n");
+		KZ_LOG_INFO(LogChannel::Global, "Incoming WebSocket message is not valid JSON.\n");
 		return;
 	}
 
@@ -580,12 +580,12 @@ void KZGlobalService::WS::OnMessage(const ix::WebSocketMessagePtr &message)
 void KZGlobalService::WS::OnOpenMessage()
 {
 	KZGlobalService::state.store(KZGlobalService::State::Connected);
-	KZ_LOG_INFO(LogChannel::General, "[KZ::Global] WebSocket connection established.\n");
+	KZ_LOG_INFO(LogChannel::Global, "WebSocket connection established.\n");
 }
 
 void KZGlobalService::WS::OnCloseMessage(const ix::WebSocketCloseInfo &closeInfo)
 {
-	KZ_LOG_INFO(LogChannel::General, "[KZ::Global] WebSocket connection closed (%i): %s\n", closeInfo.code, closeInfo.reason.c_str());
+	KZ_LOG_INFO(LogChannel::Global, "WebSocket connection closed (%i): %s\n", closeInfo.code, closeInfo.reason.c_str());
 
 	switch (closeInfo.code)
 	{
@@ -680,7 +680,7 @@ void KZGlobalService::WS::InitiateHandshake()
 		return;
 	}
 
-	KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Initiating WebSocket handshake...\n");
+	KZ_LOG_INFO(LogChannel::Global, "Initiating WebSocket handshake...\n");
 
 	bool mapNameOk = false;
 	CUtlString currentMapName = g_pKZUtils->GetCurrentMapName(&mapNameOk);
@@ -715,8 +715,8 @@ void KZGlobalService::WS::CompleteHandshake(KZ::api::messages::handshake::HelloA
 		KZ_LOG_WARN(LogChannel::Global, "Unexpected state when calling `CompleteHandshake()`.\n");
 	}
 
-	KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Completing WebSocket handshake...\n");
-	// KZ_LOG_INFO(LogChannel::General, "[KZ::Global] WebSocket session ID: `%s`\n", ack.sessionID.c_str());
+	KZ_LOG_INFO(LogChannel::Global, "Completing WebSocket handshake...\n");
+	// KZ_LOG_INFO(LogChannel::Global, "WebSocket session ID: `%s`\n", ack.sessionID.c_str());
 
 	bool mapMismatch = false;
 
@@ -731,7 +731,7 @@ void KZGlobalService::WS::CompleteHandshake(KZ::api::messages::handshake::HelloA
 		}
 		else
 		{
-			KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Map changed during handshake (sent '%s', current '%s'); re-sending map_change.\n",
+			KZ_LOG_INFO(LogChannel::Global, "Map changed during handshake (sent '%s', current '%s'); re-sending map_change.\n",
 				   KZGlobalService::WS::handshakeMapName.c_str(), mapNameOk ? currentMapName.Get() : "<unknown>");
 			std::lock_guard _guard(KZGlobalService::currentMap.mutex);
 			KZGlobalService::currentMap.info = std::nullopt;
@@ -791,7 +791,7 @@ void KZGlobalService::WS::CompleteHandshake(KZ::api::messages::handshake::HelloA
 
 	if (!KZGlobalService::state.compare_exchange_strong(currentState, KZGlobalService::State::HandshakeCompleted))
 	{
-		KZ_LOG_INFO(LogChannel::General, "[KZ::Global] State changed unexpectedly during `CompleteHandshake()`.\n");
+		KZ_LOG_INFO(LogChannel::Global, "State changed unexpectedly during `CompleteHandshake()`.\n");
 	}
 
 	if (mapMismatch)

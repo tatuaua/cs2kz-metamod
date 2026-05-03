@@ -170,11 +170,11 @@ void KZLanguageService::UpdateLanguage(u64 xuid, const char *langKey, LanguageIn
 	{
 		if (KZ_STREQI(langInfo.lastAddon, KZLanguageService::GetBaseAddon()))
 		{
-			KZ_LOG_INFO(LogChannel::General, "[KZ::Language] Adding %s for client %llu\n", addon, xuid);
+			KZ_LOG_INFO(LogChannel::Language, "Adding %s for client %llu\n", addon, xuid);
 		}
 		else
 		{
-			KZ_LOG_INFO(LogChannel::General, "[KZ::Language] Adding %s and removing %s for client %llu\n", addon, langInfo.lastAddon, xuid);
+			KZ_LOG_INFO(LogChannel::Language, "Adding %s and removing %s for client %llu\n", addon, langInfo.lastAddon, xuid);
 		}
 		if (g_pMultiAddonManager)
 		{
@@ -203,7 +203,7 @@ void KZLanguageService::OnPlayerConnect(u64 steamID64)
 				if (eStatus == ECvarValueStatus::ValueIntact)
 				{
 					const char* langKey = languagesKV->GetString(pszCvarValue, pszCvarValue);
-					KZ_LOG_INFO(LogChannel::General, "[KZ::Language] Received client convar value: %s\n", langKey);
+					KZ_LOG_INFO(LogChannel::Language, "Received client convar value: %s\n", langKey);
 					KZLanguageService::UpdateLanguage(steamID64, langKey, LanguageInfo::CacheLevel::CACHE_CVAR, true);
 				}
 		});

@@ -530,7 +530,7 @@ void KZ::mapapi::OnCreateLoadingSpawnGroupHook(const CUtlVector<const CEntityKey
 			//  for backwards compatibility.
 			if (g_mappingApi.mapApiVersion == KZ_NO_MAPAPI_VERSION)
 			{
-				KZ_LOG_INFO(LogChannel::General, "Warning: Map is not compiled with Mapping API. Reverting to default behavior.\n");
+				KZ_LOG_INFO(LogChannel::MappingAPI, "Warning: Map is not compiled with Mapping API. Reverting to default behavior.\n");
 
 				// Manually create a KZ_NO_MAPAPI_COURSE_NAME course here because there shouldn't be any info_target_server_only around.
 				Mapi_CreateCourse();

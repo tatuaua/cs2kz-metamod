@@ -95,7 +95,7 @@ void KZDatabaseService::SetupMap()
 				}
 			}
 			mapSetUp = true;
-			KZ_LOG_INFO(LogChannel::General, "[KZ::DB] Map setup successful for %s, current map ID: %i\n", currentMapName, KZDatabaseService::currentMapID);
+			KZ_LOG_INFO(LogChannel::DB, "Map setup successful for %s, current map ID: %i\n", currentMapName, KZDatabaseService::currentMapID);
 			CALL_FORWARD(eventListeners, OnMapSetup);
 		},
 		OnGenericTxnFailure);

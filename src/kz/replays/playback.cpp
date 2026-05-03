@@ -292,7 +292,7 @@ namespace KZ::replaysystem::playback
 		}
 		if (kz_replay_playback_debug.Get())
 		{
-			KZ_LOG_INFO(LogChannel::General, "%s\n", command->DebugString().c_str());
+			KZ_LOG_INFO(LogChannel::Replays, "%s\n", command->DebugString().c_str());
 		}
 		CheckWeapon(*player, *command);
 	}

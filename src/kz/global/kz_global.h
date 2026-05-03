@@ -88,7 +88,7 @@ private:
 				break;
 			}
 
-			KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Cancelled WebSocket message (id=%i, %s)\n", messageID, reasonStr);
+			KZ_LOG_INFO(LogChannel::Global, "Cancelled WebSocket message (id=%i, %s)\n", messageID, reasonStr);
 		}
 	};
 
@@ -532,7 +532,7 @@ public:
 
 		if (!currentMapIsGlobal)
 		{
-			KZ_LOG_INFO(LogChannel::General, "[KZ::Global] Cannot submit record on non-global map.\n");
+			KZ_LOG_INFO(LogChannel::Global, "Cannot submit record on non-global map.\n");
 			return SubmitRecordResult::MapNotGlobal;
 		}
 
