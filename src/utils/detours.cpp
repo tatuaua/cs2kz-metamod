@@ -104,31 +104,41 @@ bool Detour_TraceShape(const void *physicsQuery, const Ray_t &ray, const Vector 
 		}
 		case RAY_TYPE_SPHERE:
 		{
-			KZ_LOG_DEBUG(LogChannel::Movement, "RAY_TYPE_SPHERE radius %f, center %s, ", ray.m_Sphere.m_flRadius, VecToString(ray.m_Sphere.m_vCenter));
+			KZ_LOG_DEBUG(
+				LogChannel::Movement, "RAY_TYPE_SPHERE radius %f, center %s, ", ray.m_Sphere.m_flRadius, VecToString(ray.m_Sphere.m_vCenter)
+			);
 			break;
 		}
 		case RAY_TYPE_HULL:
 		{
-			KZ_LOG_DEBUG(LogChannel::Movement, "RAY_TYPE_HULL mins = %s, maxs = %s, ", VecToString(ray.m_Hull.m_vMins), VecToString(ray.m_Hull.m_vMaxs));
+			KZ_LOG_DEBUG(
+				LogChannel::Movement, "RAY_TYPE_HULL mins = %s, maxs = %s, ", VecToString(ray.m_Hull.m_vMins), VecToString(ray.m_Hull.m_vMaxs)
+			);
 			break;
 		}
 		case RAY_TYPE_CAPSULE:
 		{
-			KZ_LOG_DEBUG(LogChannel::Movement, "RAY_TYPE_CAPSULE radius %f, center %s %s, ", ray.m_Capsule.m_flRadius, VecToString(ray.m_Capsule.m_vCenter[0]),
-				   VecToString(ray.m_Capsule.m_vCenter[1]));
+			KZ_LOG_DEBUG(
+				LogChannel::Movement, "RAY_TYPE_CAPSULE radius %f, center %s %s, ", ray.m_Capsule.m_flRadius, VecToString(ray.m_Capsule.m_vCenter[0]),
+				VecToString(ray.m_Capsule.m_vCenter[1])
+			);
 			break;
 		}
 		case RAY_TYPE_MESH:
 		{
-			KZ_LOG_DEBUG(LogChannel::Movement, "RAY_TYPE_MESH mins = %s, maxs = %s, numVertice = %i, pVertices = %p, ", VecToString(ray.m_Mesh.m_vMins),
-				   VecToString(ray.m_Mesh.m_vMaxs), ray.m_Mesh.m_nNumVertices, ray.m_Mesh.m_pVertices);
+			KZ_LOG_DEBUG(
+				LogChannel::Movement, "RAY_TYPE_MESH mins = %s, maxs = %s, numVertice = %i, pVertices = %p, ", VecToString(ray.m_Mesh.m_vMins),
+				VecToString(ray.m_Mesh.m_vMaxs), ray.m_Mesh.m_nNumVertices, ray.m_Mesh.m_pVertices
+			);
 			break;
 		}
 	}
 	if (pm->DidHit())
 	{
-		KZ_LOG_DEBUG(LogChannel::Movement, "hit %s (normal %s, triangle %i, body %p, shape %p)\n", VecToString(pm->m_vEndPos), VecToString(pm->m_vHitNormal), pm->m_nTriangle,
-			   pm->m_hBody, pm->m_hShape);
+		KZ_LOG_DEBUG(
+			LogChannel::Movement, "hit %s (normal %s, triangle %i, body %p, shape %p)\n", VecToString(pm->m_vEndPos), VecToString(pm->m_vHitNormal),
+			pm->m_nTriangle, pm->m_hBody, pm->m_hShape
+		);
 	}
 	else
 	{
