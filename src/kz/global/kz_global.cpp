@@ -159,12 +159,8 @@ void KZGlobalService::OnMapInfo(const std::optional<KZ::api::Map> &mapInfo, std:
 
 	if (mapNameOk && currentMapName.Get() != sentMapName)
 	{
-		KZ_LOG_INFO(
-			LogChannel::Global,
-			"Map changed since MapChange was sent (sent '%s', current '%s'); re-sending.\n",
-			sentMapName.c_str(),
-			currentMapName.Get()
-		);
+		KZ_LOG_INFO(LogChannel::Global, "Map changed since MapChange was sent (sent '%s', current '%s'); re-sending.\n", sentMapName.c_str(),
+					currentMapName.Get());
 		KZGlobalService::SendMapChange();
 		return;
 	}
@@ -402,13 +398,8 @@ static_function void OnPlayerRecordsReceived(const KZ::api::messages::PlayerReco
 
 void KZGlobalService::OnPlayerJoinAck(const KZ::api::messages::PlayerJoinAck &ack, u64 steamID)
 {
-	KZ_LOG_INFO(
-		LogChannel::Global,
-		"Received `player_join_ack` response. (player.id=%llu, player.is_banned=%s, player.has_prime=%s)\n",
-		steamID,
-		ack.isBanned ? "true" : "false",
-		ack.hasPrime ? "true" : "false"
-	);
+	KZ_LOG_INFO(LogChannel::Global, "Received `player_join_ack` response. (player.id=%llu, player.is_banned=%s, player.has_prime=%s)\n", steamID,
+				ack.isBanned ? "true" : "false", ack.hasPrime ? "true" : "false");
 
 	KZPlayer *player = g_pKZPlayerManager->SteamIdToPlayer(steamID);
 	if (player == nullptr)
@@ -512,13 +503,12 @@ void KZGlobalService::WS::OnMessage(const ix::WebSocketMessagePtr &message)
 			return;
 	}
 
-	KZ_LOG_DEBUG(
-		LogChannel::Global,
-		"Received WebSocket message.\n"
-		"----------------------------------------\n"
-		"%s"
-		"\n----------------------------------------\n",
-		message->str.c_str());
+	KZ_LOG_DEBUG(LogChannel::Global,
+				 "Received WebSocket message.\n"
+				 "----------------------------------------\n"
+				 "%s"
+				 "\n----------------------------------------\n",
+				 message->str.c_str());
 
 	Json payload(message->str);
 
@@ -655,14 +645,8 @@ void KZGlobalService::WS::OnCloseMessage(const ix::WebSocketCloseInfo &closeInfo
 
 void KZGlobalService::WS::OnErrorMessage(const ix::WebSocketErrorInfo &errorInfo)
 {
-	KZ_LOG_WARN(
-		LogChannel::Global,
-		"WebSocket error (status %i, retries=%i, wait_time=%f): %s\n",
-		errorInfo.http_status,
-		errorInfo.retries,
-		errorInfo.wait_time,
-		errorInfo.reason.c_str()
-	);
+	KZ_LOG_WARN(LogChannel::Global, "WebSocket error (status %i, retries=%i, wait_time=%f): %s\n", errorInfo.http_status, errorInfo.retries,
+				errorInfo.wait_time, errorInfo.reason.c_str());
 
 	switch (errorInfo.http_status)
 	{
@@ -748,12 +732,8 @@ void KZGlobalService::WS::CompleteHandshake(KZ::api::messages::handshake::HelloA
 		}
 		else
 		{
-			KZ_LOG_INFO(
-				LogChannel::Global,
-				"Map changed during handshake (sent '%s', current '%s'); re-sending map_change.\n",
-				KZGlobalService::WS::handshakeMapName.c_str(),
-				mapNameOk ? currentMapName.Get() : "<unknown>"
-			);
+			KZ_LOG_INFO(LogChannel::Global, "Map changed during handshake (sent '%s', current '%s'); re-sending map_change.\n",
+						KZGlobalService::WS::handshakeMapName.c_str(), mapNameOk ? currentMapName.Get() : "<unknown>");
 			std::lock_guard _guard(KZGlobalService::currentMap.mutex);
 			KZGlobalService::currentMap.info = std::nullopt;
 			mapMismatch = true;

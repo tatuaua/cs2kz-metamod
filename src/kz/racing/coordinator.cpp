@@ -169,13 +169,12 @@ void KZRacingService::OnWebSocketMessage(const ix::WebSocketMessagePtr &message)
 			return;
 	}
 
-	KZ_LOG_DEBUG(
-		LogChannel::Racing,
-		"Received WebSocket message.\n"
-		"----------------------------------------\n"
-		"%s"
-		"\n----------------------------------------\n",
-		message->str.c_str());
+	KZ_LOG_DEBUG(LogChannel::Racing,
+				 "Received WebSocket message.\n"
+				 "----------------------------------------\n"
+				 "%s"
+				 "\n----------------------------------------\n",
+				 message->str.c_str());
 
 	Json payload(message->str);
 
@@ -367,14 +366,8 @@ void KZRacingService::WS_OnCloseMessage(const ix::WebSocketCloseInfo &closeInfo)
 
 void KZRacingService::WS_OnErrorMessage(const ix::WebSocketErrorInfo &errorInfo)
 {
-	KZ_LOG_WARN(
-		LogChannel::Racing,
-		"WebSocket error (status %i, retries=%i, wait_time=%f): %s\n",
-		errorInfo.http_status,
-		errorInfo.retries,
-		errorInfo.wait_time,
-		errorInfo.reason.c_str()
-	);
+	KZ_LOG_WARN(LogChannel::Racing, "WebSocket error (status %i, retries=%i, wait_time=%f): %s\n", errorInfo.http_status, errorInfo.retries,
+				errorInfo.wait_time, errorInfo.reason.c_str());
 
 	switch (errorInfo.http_status)
 	{
