@@ -85,12 +85,12 @@ void KZLanguageService::LoadLanguages()
 	g_SMAPI->PathFormat(fullPath, sizeof(fullPath), "%s/addons/cs2kz/translations/config.txt", g_SMAPI->GetBaseDir());
 	if (!languagesKV->LoadFromFile(g_pFullFileSystem, fullPath, nullptr))
 	{
-		KZInfo("Failed to load translation config file.\n");
+		KZ_LOG_INFO(LogService::General, "Failed to load translation config file.\n");
 	}
 	g_SMAPI->PathFormat(fullPath, sizeof(fullPath), "%s/addons/cs2kz/translations/menu-addons.txt", g_SMAPI->GetBaseDir());
 	if (!addonsKV->LoadFromFile(g_pFullFileSystem, fullPath, nullptr))
 	{
-		KZInfo("Failed to load addon config file.\n");
+		KZ_LOG_INFO(LogService::General, "Failed to load addon config file.\n");
 	}
 }
 
@@ -108,7 +108,7 @@ void KZLanguageService::LoadTranslations()
 			g_SMAPI->PathFormat(fullPath, sizeof(fullPath), "%s/addons/cs2kz/translations/%s", g_SMAPI->GetBaseDir(), fileName);
 			if (!translationKV->LoadFromFile(g_pFullFileSystem, fullPath, nullptr))
 			{
-				KZInfo("Failed to load %s\n", fileName);
+				KZ_LOG_INFO(LogService::General, "Failed to load %s\n", fileName);
 			}
 			fileName = g_pFullFileSystem->FindNext(findHandle);
 		} while (fileName);
@@ -139,7 +139,7 @@ const char *KZLanguageService::GetTranslatedFormat(const char *language, const c
 {
 	if (!translationKV->FindKey(phrase))
 	{
-		// KZInfo("Warning: Phrase '%s' not found, returning orignal message!\n", phrase);
+		// KZ_LOG_INFO(LogService::General, "Warning: Phrase '%s' not found, returning orignal message!\n", phrase);
 		return phrase;
 	}
 	const char *outFormat = translationKV->FindKey(phrase)->GetString(language);
@@ -150,7 +150,7 @@ const char *KZLanguageService::GetTranslatedFormat(const char *language, const c
 			// It is fine to have no format.
 			return NULL;
 		}
-		// KZInfo("Warning: Phrase '%s' not found for language %s!\n", phrase, language);
+		// KZ_LOG_INFO(LogService::General, "Warning: Phrase '%s' not found for language %s!\n", phrase, language);
 		return translationKV->FindKey(phrase)->GetString(KZ_DEFAULT_LANGUAGE);
 	}
 	return outFormat;
@@ -170,11 +170,11 @@ void KZLanguageService::UpdateLanguage(u64 xuid, const char *langKey, LanguageIn
 	{
 		if (KZ_STREQI(langInfo.lastAddon, KZLanguageService::GetBaseAddon()))
 		{
-			KZInfo("[KZ::Language] Adding %s for client %llu\n", addon, xuid);
+			KZ_LOG_INFO(LogService::General, "[KZ::Language] Adding %s for client %llu\n", addon, xuid);
 		}
 		else
 		{
-			KZInfo("[KZ::Language] Adding %s and removing %s for client %llu\n", addon, langInfo.lastAddon, xuid);
+			KZ_LOG_INFO(LogService::General, "[KZ::Language] Adding %s and removing %s for client %llu\n", addon, langInfo.lastAddon, xuid);
 		}
 		if (g_pMultiAddonManager)
 		{
@@ -203,7 +203,7 @@ void KZLanguageService::OnPlayerConnect(u64 steamID64)
 				if (eStatus == ECvarValueStatus::ValueIntact)
 				{
 					const char* langKey = languagesKV->GetString(pszCvarValue, pszCvarValue);
-					KZInfo("[KZ::Language] Received client convar value: %s\n", langKey);
+					KZ_LOG_INFO(LogService::General, "[KZ::Language] Received client convar value: %s\n", langKey);
 					KZLanguageService::UpdateLanguage(steamID64, langKey, LanguageInfo::CacheLevel::CACHE_CVAR, true);
 				}
 		});

@@ -280,7 +280,7 @@ namespace KZ::replaysystem::events
 		{
 			utils::PrintChatAll("Style change event: tick %d, style %s, clear style %d", event->serverTick, styleNamePtr,
 								event->data.styleChange.clearStyles);
-			KZInfo("Style change event: tick %d, style %s, clear style %d\n", event->serverTick, styleNamePtr, event->data.styleChange.clearStyles);
+			KZ_LOG_INFO(LogService::General, "Style change event: tick %d, style %s, clear style %d\n", event->serverTick, styleNamePtr, event->data.styleChange.clearStyles);
 		}
 
 		if (event->data.styleChange.clearStyles)

@@ -670,7 +670,7 @@ bool KZ::replaysystem::compression::ReadWeaponsCompressed(FileHandle_t file, std
 			memcpy(&econInfo.attributes[i], readPtr, sizeof(EconInfo::attributes[0]));
 			readPtr += sizeof(EconInfo::attributes[0]);
 		}
-		KZInfo("Read weapon ID %d with %d attributes\n", weaponID, econInfo.mainInfo.numAttributes);
+		KZ_LOG_INFO(LogService::General, "Read weapon ID %d with %d attributes\n", weaponID, econInfo.mainInfo.numAttributes);
 		outWeaponTable.emplace_back(weaponID, econInfo);
 	}
 

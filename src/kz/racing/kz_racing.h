@@ -340,7 +340,7 @@ private:
 
 		if (!success)
 		{
-			KZInfo("[KZ::Global] Failed to serialize message for event `%.*s`.\n", (int)event.size(), event.data());
+			KZ_LOG_INFO(LogService::General, "[KZ::Global] Failed to serialize message for event `%.*s`.\n", (int)event.size(), event.data());
 		}
 
 		return success;

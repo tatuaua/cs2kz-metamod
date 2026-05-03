@@ -56,11 +56,11 @@ void KZDatabaseService::SetupCourses(CUtlVector<KZCourseDescriptor *> &courses)
 				const char* name = resultSet->GetString(0);
 				if (KZ::course::UpdateCourseLocalID(name, resultSet->GetInt(1)))
 				{
-					KZInfo("[KZ::DB] Course '%s' registered with ID %i\n", name, resultSet->GetInt(1));
+					KZ_LOG_INFO(LogService::General, "[KZ::DB] Course '%s' registered with ID %i\n", name, resultSet->GetInt(1));
 				}
 				else
 				{
-					KZInfo("[KZ::DB] Warning: Course '%s' with ID %i has no ingame course registered!\n", name, resultSet->GetInt(1));
+					KZ_LOG_INFO(LogService::General, "[KZ::DB] Warning: Course '%s' with ID %i has no ingame course registered!\n", name, resultSet->GetInt(1));
 				}
 			}
 			coursesSetUp = true;

@@ -22,7 +22,7 @@ void KZDatabaseService::SetupMap()
 	mapSetUp = false;
 	if (!KZDatabaseService::IsReady())
 	{
-		KZInfo("[KZ::DB] Warning: SetupMap called too early.\n");
+		KZ_LOG_INFO(LogService::General, "[KZ::DB] Warning: SetupMap called too early.\n");
 		return;
 	}
 
@@ -65,7 +65,7 @@ void KZDatabaseService::SetupMap()
 			auto currentMapName = g_pKZUtils->GetServerGlobals()->mapname.ToCStr();
 			if (!KZ_STREQ(currentMapName, mapName.Get()))
 			{
-				KZInfo("[KZ::DB] Failed to setup map, current map name %s doesn't match %s!\n", currentMapName, mapName.Get());
+				KZ_LOG_INFO(LogService::General, "[KZ::DB] Failed to setup map, current map name %s doesn't match %s!\n", currentMapName, mapName.Get());
 				return;
 			}
 			switch (databaseType)
@@ -95,7 +95,7 @@ void KZDatabaseService::SetupMap()
 				}
 			}
 			mapSetUp = true;
-			KZInfo("[KZ::DB] Map setup successful for %s, current map ID: %i\n", currentMapName, KZDatabaseService::currentMapID);
+			KZ_LOG_INFO(LogService::General, "[KZ::DB] Map setup successful for %s, current map ID: %i\n", currentMapName, KZDatabaseService::currentMapID);
 			CALL_FORWARD(eventListeners, OnMapSetup);
 		},
 		OnGenericTxnFailure);

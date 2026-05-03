@@ -66,7 +66,7 @@ public:
 			// This should never happen but we make the check anyway just to be sure.
 			if (!startedTouch)
 			{
-				KZInfo("[KZ::Trigger] EndTouch check is called before the start touch interaction even finished!\n");
+				KZ_LOG_INFO(LogService::General, "[KZ::Trigger] EndTouch check is called before the start touch interaction even finished!\n");
 				return false;
 			}
 			return true;

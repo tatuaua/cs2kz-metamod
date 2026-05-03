@@ -88,7 +88,7 @@ KZStyleManager::StylePluginInfo KZ::style::GetStyleInfo(KZStyleService *style)
 	KZStyleManager::StylePluginInfo emptyInfo;
 	if (!style)
 	{
-		KZInfo("[KZ] Warning: Getting style info from a nullptr!\n");
+		KZ_LOG_INFO(LogService::General, "[KZ] Warning: Getting style info from a nullptr!\n");
 		return emptyInfo;
 	}
 	FOR_EACH_VEC(styleInfos, i)
@@ -106,7 +106,7 @@ KZStyleManager::StylePluginInfo KZ::style::GetStyleInfo(CUtlString styleName)
 	KZStyleManager::StylePluginInfo emptyInfo;
 	if (styleName.IsEmpty())
 	{
-		KZInfo("[KZ] Warning: Getting style info from an empty string!\n");
+		KZ_LOG_INFO(LogService::General, "[KZ] Warning: Getting style info from an empty string!\n");
 		return emptyInfo;
 	}
 	FOR_EACH_VEC(styleInfos, i)

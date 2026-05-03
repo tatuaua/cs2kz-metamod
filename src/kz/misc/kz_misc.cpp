@@ -498,14 +498,14 @@ void KZ::misc::ProcessConCommand(ConCommandRef cmd, const CCommandContext &ctx, 
 		{
 			utils::SayChat(player->GetController(), "%s %s%s{default}: %s", coloredPrefix.c_str(), playerColor.c_str(), name, text.c_str());
 			utils::PrintConsoleAll("%s %s: %s", prefix.c_str(), name, text.c_str());
-			KZInfo("%s %s: %s\n", prefix.c_str(), name, text.c_str());
+			KZ_LOG_INFO(LogService::General, "%s %s: %s\n", prefix.c_str(), name, text.c_str());
 			player->racingService->SendChatMessage(text.c_str());
 		}
 		else
 		{
 			utils::SayChat(player->GetController(), "{grey}* %s %s%s{default}: %s", coloredPrefix.c_str(), playerColor.c_str(), name, text.c_str());
 			utils::PrintConsoleAll("* %s %s: %s", prefix.c_str(), name, text.c_str());
-			KZInfo("* %s %s: %s\n", prefix.c_str(), name, text.c_str());
+			KZ_LOG_INFO(LogService::General, "* %s %s: %s\n", prefix.c_str(), name, text.c_str());
 			player->racingService->SendChatMessage(text.c_str());
 		}
 	}
@@ -599,7 +599,7 @@ static_function void DrawClipMeshes(CPhysicsGameSystem *gs)
 		CPhysAggregateData *aggregateData = instance->aggregateData;
 		if (!aggregateData)
 		{
-			KZInfo("PhysicsSpawnGroup %i: No aggregate data found for instance %p\n", groupIndex, instance);
+			KZ_LOG_INFO(LogService::General, "PhysicsSpawnGroup %i: No aggregate data found for instance %p\n", groupIndex, instance);
 			continue;
 		}
 
@@ -678,7 +678,7 @@ static_function void DrawTriggers()
 			auto *aggregateData = pPhysInstance ? pPhysInstance->aggregateData : nullptr;
 			if (!aggregateData)
 			{
-				KZInfo("Trigger %i: No aggregate data found for instance %p\n", pTrigger->entindex(), pPhysInstance);
+				KZ_LOG_INFO(LogService::General, "Trigger %i: No aggregate data found for instance %p\n", pTrigger->entindex(), pPhysInstance);
 				continue;
 			}
 			FOR_EACH_VEC(aggregateData->m_Parts, i)

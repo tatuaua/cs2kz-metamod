@@ -269,7 +269,7 @@ void KZ::replaysystem::item::ApplyModelAttributesToPawn(CCSPlayerPawn *pawn, con
 	}
 	else
 	{
-		KZInfo("[KZ] Model '%s' does not exist, skipping model application.\n", modelName);
+		KZ_LOG_INFO(LogService::General, "[KZ] Model '%s' does not exist, skipping model application.\n", modelName);
 	}
 	// This might not work with custom models, but oh well.
 	if (setGloves)

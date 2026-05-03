@@ -128,7 +128,7 @@ bool KZTriggerService::TouchTeleportTrigger(TriggerTouchTracker tracker)
 	CBaseEntity *destination = dynamic_cast<CBaseEntity *>(GameEntitySystem()->GetEntityInstance(destinationHandle));
 	if (!destinationHandle.IsValid() || !destination)
 	{
-		KZInfo("Invalid teleport destination \"%s\" on trigger with hammerID %i.\n", tracker.kzTrigger->teleport.destination,
+		KZ_LOG_INFO(LogService::General, "Invalid teleport destination \"%s\" on trigger with hammerID %i.\n", tracker.kzTrigger->teleport.destination,
 			   tracker.kzTrigger->hammerId);
 		return false;
 	}

@@ -81,7 +81,7 @@ void KZProfileService::RequestRating()
 	{
 		if (kz_profile_debug.GetBool())
 		{
-			KZInfo("[KZ::Profile] Global service not available, cannot request rating for player %s.\n", this->player->GetName());
+			KZ_LOG_INFO(LogService::General, "[KZ::Profile] Global service not available, cannot request rating for player %s.\n", this->player->GetName());
 		}
 		return;
 	}
@@ -89,7 +89,7 @@ void KZProfileService::RequestRating()
 	{
 		if (kz_profile_debug.GetBool())
 		{
-			KZInfo("[KZ::Profile] Player %s not authenticated or not connected, cannot request rating.\n", this->player->GetName());
+			KZ_LOG_INFO(LogService::General, "[KZ::Profile] Player %s not authenticated or not connected, cannot request rating.\n", this->player->GetName());
 		}
 		return;
 	}
@@ -98,7 +98,7 @@ void KZProfileService::RequestRating()
 	{
 		if (kz_profile_debug.GetBool())
 		{
-			KZInfo("[KZ::Profile] Player %s has invalid mode '%s', cannot request rating.\n", this->player->GetName(),
+			KZ_LOG_INFO(LogService::General, "[KZ::Profile] Player %s has invalid mode '%s', cannot request rating.\n", this->player->GetName(),
 				   this->player->modeService->GetModeShortName());
 		}
 		return;
@@ -109,7 +109,7 @@ void KZProfileService::RequestRating()
 	{
 		if (kz_profile_debug.GetBool())
 		{
-			KZInfo("[KZ::Profile] Player %s has invalid SteamID, cannot request rating.\n", this->player->GetName());
+			KZ_LOG_INFO(LogService::General, "[KZ::Profile] Player %s has invalid SteamID, cannot request rating.\n", this->player->GetName());
 		}
 		return;
 	}
@@ -117,7 +117,7 @@ void KZProfileService::RequestRating()
 	{
 		if (kz_profile_debug.GetBool())
 		{
-			KZInfo("[KZ::Profile] Player %s has styles enabled, skipping rating request.\n", this->player->GetName());
+			KZ_LOG_INFO(LogService::General, "[KZ::Profile] Player %s has styles enabled, skipping rating request.\n", this->player->GetName());
 		}
 		return;
 	}
@@ -132,19 +132,19 @@ void KZProfileService::RequestRating()
 	HTTP::Request request(HTTP::Method::GET, url);
 	if (kz_profile_debug.GetBool())
 	{
-		KZInfo("[KZ::Profile] Requesting rating for player %s (%llu) in mode %d.\n", this->player->GetName(), steamID64, static_cast<u8>(mode));
+		KZ_LOG_INFO(LogService::General, "[KZ::Profile] Requesting rating for player %s (%llu) in mode %d.\n", this->player->GetName(), steamID64, static_cast<u8>(mode));
 	}
 	auto callback = [steamID64, mode](HTTP::Response response)
 	{
 		if (kz_profile_debug.GetBool())
 		{
-			KZInfo("[KZ::Profile] Received response for player %llu: status %d.\n", steamID64, response.status);
+			KZ_LOG_INFO(LogService::General, "[KZ::Profile] Received response for player %llu: status %d.\n", steamID64, response.status);
 		}
 		if (response.status != 200)
 		{
 			if (kz_profile_debug.GetBool())
 			{
-				KZInfo("[KZ::Profile] Non-200 response for player %llu: status %d.\n", steamID64, response.status);
+				KZ_LOG_INFO(LogService::General, "[KZ::Profile] Non-200 response for player %llu: status %d.\n", steamID64, response.status);
 			}
 			return;
 		}
@@ -153,7 +153,7 @@ void KZProfileService::RequestRating()
 		{
 			if (kz_profile_debug.GetBool())
 			{
-				KZInfo("[KZ::Profile] Player not found for SteamID %llu.\n", steamID64);
+				KZ_LOG_INFO(LogService::General, "[KZ::Profile] Player not found for SteamID %llu.\n", steamID64);
 			}
 			return;
 		}
@@ -162,7 +162,7 @@ void KZProfileService::RequestRating()
 		{
 			if (kz_profile_debug.GetBool())
 			{
-				KZInfo("[KZ::Profile] Player %s mode changed since request, ignoring response.\n", player->GetName());
+				KZ_LOG_INFO(LogService::General, "[KZ::Profile] Player %s mode changed since request, ignoring response.\n", player->GetName());
 			}
 			return;
 		}
@@ -173,13 +173,13 @@ void KZProfileService::RequestRating()
 		{
 			if (kz_profile_debug.GetBool())
 			{
-				KZInfo("[KZ::Profile] Failed to parse rating from response for player %s.\n", player->GetName());
+				KZ_LOG_INFO(LogService::General, "[KZ::Profile] Failed to parse rating from response for player %s.\n", player->GetName());
 			}
 			return;
 		}
 		if (kz_profile_debug.GetBool())
 		{
-			KZInfo("[KZ::Profile] Updating rating for player %s: %.2f.\n", player->GetName(), player->profileService->currentRating);
+			KZ_LOG_INFO(LogService::General, "[KZ::Profile] Updating rating for player %s: %.2f.\n", player->GetName(), player->profileService->currentRating);
 		}
 		player->profileService->UpdateCompetitiveRank();
 		player->profileService->UpdateClantag();
