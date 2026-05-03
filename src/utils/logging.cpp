@@ -23,6 +23,7 @@ static void RegisterKZChannelTags(LoggingChannelID_t channelID)
 }
 
 static KZChannel_t g_KZChannels[] = {
+	// Handles are set in function below
 	{ LogChannel::General, "CS2KZ.General", INVALID_LOGGING_CHANNEL_ID },
 	{ LogChannel::AC, "CS2KZ.AC", INVALID_LOGGING_CHANNEL_ID },
 	{ LogChannel::DB, "CS2KZ.DB", INVALID_LOGGING_CHANNEL_ID },
