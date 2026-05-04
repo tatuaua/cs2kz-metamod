@@ -3,9 +3,7 @@
 #include <string_view>
 
 #include "common.h"
-#include "filesystem.h"
 #include "version_gen.h"
-#include "utils/logging.h"
 
 class KZPlugin;
 extern KZPlugin g_KZPlugin;

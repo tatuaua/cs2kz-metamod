@@ -89,11 +89,10 @@ RecordAnnounce::RecordAnnounce(KZPlayer *player)
 		{
 			KZ_LOG_DEBUG(LogChannel::Global, "(%u) Course '%s' not found on global map '%s', will not submit globally.\n", uid, this->course.name.c_str(),
 						 currentMap->name.c_str());
-				KZ_LOG_INFO(LogChannel::Global, "(%u) Available courses:\n", uid);
-				for (const KZ::api::Map::Course &c : currentMap->courses)
-				{
-					KZ_LOG_INFO(LogChannel::Global, " - %s\n", c.name.c_str());
-				}
+			KZ_LOG_DEBUG(LogChannel::Global, "(%u) Available courses:\n", uid);
+			for (const KZ::api::Map::Course &c : currentMap->courses)
+			{
+				KZ_LOG_DEBUG(LogChannel::Global, " - %s\n", c.name.c_str());
 			}
 			global = false;
 		}
