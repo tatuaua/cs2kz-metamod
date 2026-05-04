@@ -10,8 +10,6 @@
 
 #include "vendor/sql_mm/src/public/sql_mm.h"
 
-CConVar<bool> kz_debug_announce_global("kz_debug_announce_global", FCVAR_NONE, "Print debug info for record announcements.", false);
-
 RecordAnnounce::RecordAnnounce(KZPlayer *player)
 	: uid(RecordAnnounce::idCount++), timestamp(g_pKZUtils->GetServerGlobals()->realtime), userID(player->GetClient()->GetUserID()),
 	  time(player->timerService->GetTime()), runUUID(player->recordingService->GetCurrentRunUUID().ToString()),
@@ -19,15 +17,15 @@ RecordAnnounce::RecordAnnounce(KZPlayer *player)
 {
 	this->local = KZDatabaseService::IsReady() && KZDatabaseService::IsMapSetUp();
 	this->global = player->hasPrime && KZGlobalService::IsAvailable();
-	if (kz_debug_announce_global.Get() && !this->global)
+	if (!this->global)
 	{
 		if (!player->hasPrime)
 		{
-			KZ_LOG_INFO(LogChannel::Global, "(%u) Player %s does not have Prime, will not submit globally.\n", uid, player->GetName());
+			KZ_LOG_DEBUG(LogChannel::Global, "(%u) Player %s does not have Prime, will not submit globally.\n", uid, player->GetName());
 		}
 		if (!KZGlobalService::IsAvailable())
 		{
-			KZ_LOG_INFO(LogChannel::Global, "(%u) Global service is not available, will not submit globally.\n", uid);
+			KZ_LOG_DEBUG(LogChannel::Global, "(%u) Global service is not available, will not submit globally.\n", uid);
 		}
 	}
 	// Setup player
@@ -41,10 +39,7 @@ RecordAnnounce::RecordAnnounce(KZPlayer *player)
 	this->global = KZ::api::DecodeModeString(this->mode.name, apiMode);
 	if (!this->global)
 	{
-		if (kz_debug_announce_global.Get())
-		{
-			KZ_LOG_INFO(LogChannel::Global, "(%u) Mode '%s' is not a valid global mode, will not submit globally.\n", uid, this->mode.name.c_str());
-		}
+		KZ_LOG_DEBUG(LogChannel::Global, "(%u) Mode '%s' is not a valid global mode, will not submit globally.\n", uid, this->mode.name.c_str());
 	}
 	this->mode.md5 = mode.md5;
 	if (mode.databaseID <= 0)
@@ -92,10 +87,8 @@ RecordAnnounce::RecordAnnounce(KZPlayer *player)
 
 		if (course == nullptr)
 		{
-			if (kz_debug_announce_global.Get())
-			{
-				KZ_LOG_INFO(LogChannel::Global, "(%u) Course '%s' not found on global map '%s', will not submit globally.\n", uid, this->course.name.c_str(),
-							   currentMap->name.c_str());
+			KZ_LOG_DEBUG(LogChannel::Global, "(%u) Course '%s' not found on global map '%s', will not submit globally.\n", uid, this->course.name.c_str(),
+						 currentMap->name.c_str());
 				KZ_LOG_INFO(LogChannel::Global, "(%u) Available courses:\n", uid);
 				for (const KZ::api::Map::Course &c : currentMap->courses)
 				{
@@ -179,10 +172,7 @@ void RecordAnnounce::SubmitGlobal()
 	KZGlobalService::MessageCallback<KZ::api::messages::NewRecordAck> callback(RecordAnnounce::OnGlobalRecordSubmitted, this->uid);
 	KZGlobalService::SubmitRecordResult submissionResult = player->globalService->SubmitRecord(std::move(data), std::move(callback));
 
-	if (kz_debug_announce_global.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Global, "(%u) Global record submission result: %d\n", uid, static_cast<int>(submissionResult));
-	}
+	KZ_LOG_DEBUG(LogChannel::Global, "(%u) Global record submission result: %d\n", uid, static_cast<int>(submissionResult));
 	switch (submissionResult)
 	{
 		case KZGlobalService::SubmitRecordResult::PlayerNotAuthenticated: /* fallthrough */
