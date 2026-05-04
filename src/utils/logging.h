@@ -62,5 +62,5 @@ public:
 
 private:
 	FileHandle_t m_pFile = nullptr;
-	bool m_useDatetimeFilename = true;
+	bool m_newFileOnStartup = true;
 };

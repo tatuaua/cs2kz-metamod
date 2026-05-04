@@ -130,7 +130,7 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 
 void KZLoggingListener::SetNewFileOnStartup(bool value)
 {
-	m_useDatetimeFilename = value;
+	m_newFileOnStartup = value;
 }
 
 void KZLoggingListener::OpenFile()
@@ -145,7 +145,7 @@ void KZLoggingListener::OpenFile()
 	g_pFullFileSystem->CreateDirHierarchy(dir, nullptr);
 
 	char path[1024];
-	if (m_useDatetimeFilename)
+	if (m_newFileOnStartup)
 	{
 		std::time_t t = std::time(nullptr);
 		std::tm tm {};
