@@ -2,7 +2,6 @@
 #include "filesystem.h"
 #include "cs2kz.h"
 
-
 ReplayFileWriter::ReplayFileWriter() {}
 
 ReplayFileWriter::~ReplayFileWriter()

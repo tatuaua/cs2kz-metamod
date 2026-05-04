@@ -10,7 +10,6 @@
 #include "sdk/usercmd.h"
 #include "kz/replays/compression.h"
 
-
 ManualRecorder::ManualRecorder(KZPlayer *player, f32 duration, KZPlayer *savedBy) : Recorder(player, duration, RP_MANUAL, true, DistanceTier_None)
 {
 	if (savedBy)
