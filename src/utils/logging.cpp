@@ -6,9 +6,10 @@
 #include "filesystem.h"
 #include "utils/logging.h"
 
-CConVar<bool> kz_log_to_file("kz_log_to_file", FCVAR_NONE, "Whether to mirror CS2KZ log output to a file in addons/cs2kz/logs.", true);
-CConVar<bool> kz_log_new_file_on_startup("kz_log_new_file_on_startup", FCVAR_NONE,
-										 "Whether to create a new log file on plugin startup, named with the startup datetime.", true);
+static bool s_logToFile = true;
+
+CConVar<bool> kz_log_to_file("kz_log_to_file", FCVAR_NONE, "Whether to mirror CS2KZ log output to a file in addons/cs2kz/logs.", true,
+							 [](CConVar<bool> *, CSplitScreenSlot, const bool *pNewValue, const bool *) { s_logToFile = *pNewValue; });
 
 struct KZChannel_t
 {
@@ -107,8 +108,12 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 
 	ConColorMsg(color, "[%s] [%s] %s%s", channelName, level, pMessage, needsNewline ? "\n" : "");
 
-	if (m_pFile)
+	if (s_logToFile)
 	{
+		if (!m_pFile) 
+		{
+			OpenFile();
+		} 
 		std::time_t t = std::time(nullptr);
 		std::tm tm {};
 #ifdef _WIN32
@@ -123,7 +128,7 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 	}
 }
 
-void KZLoggingListener::OpenFile(bool useDatetimeFilename)
+void KZLoggingListener::OpenFile()
 {
 	if (m_pFile)
 	{
@@ -135,7 +140,7 @@ void KZLoggingListener::OpenFile(bool useDatetimeFilename)
 	g_pFullFileSystem->CreateDirHierarchy(dir, nullptr);
 
 	char path[1024];
-	if (useDatetimeFilename)
+	if (m_useDatetimeFilename)
 	{
 		std::time_t t = std::time(nullptr);
 		std::tm tm {};

@@ -4,7 +4,6 @@
 #include "tier0/logging.h"
 
 extern CConVar<bool> kz_log_to_file;
-extern CConVar<bool> kz_log_new_file_on_startup;
 
 // Common tag applied to every CS2KZ-owned logging channel.
 // KZLoggingListener uses this to filter which channels it processes.
@@ -57,9 +56,11 @@ class KZLoggingListener : public ILoggingListener
 {
 public:
 	void Log(const LoggingContext_t *pContext, const tchar *pMessage) override;
-	void OpenFile(bool useDatetimeFilename);
+	void SetNewFileOnStartup(bool value) { m_useDatetimeFilename = value; }
+	void OpenFile();
 	void CloseFile();
 
 private:
 	FileHandle_t m_pFile = nullptr;
+	bool m_useDatetimeFilename = true;
 };

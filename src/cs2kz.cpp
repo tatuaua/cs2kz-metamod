@@ -83,9 +83,11 @@ bool KZPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool
 	KZ::mode::DisableReplicatedModeCvars();
 
 	KZOptionService::InitOptions();
+	kz_log_to_file.Set((bool)KZOptionService::GetOptionInt("logToFile", false));
 	if (kz_log_to_file.Get())
 	{
-		this->loggingListener.OpenFile(kz_log_new_file_on_startup.Get());
+		this->loggingListener.SetNewFileOnStartup((bool)KZOptionService::GetOptionInt("logNewFileOnStartup", true));
+		this->loggingListener.OpenFile();
 	}
 	KZTipService::Init();
 	KZAnticheatService::Init();
