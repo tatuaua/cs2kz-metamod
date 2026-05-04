@@ -110,10 +110,10 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 
 	if (s_logToFile)
 	{
-		if (!m_pFile) 
+		if (!m_pFile)
 		{
 			OpenFile();
-		} 
+		}
 		std::time_t t = std::time(nullptr);
 		std::tm tm {};
 #ifdef _WIN32
@@ -126,6 +126,11 @@ void KZLoggingListener::Log(const LoggingContext_t *pContext, const tchar *pMess
 		g_pFullFileSystem->FPrintf(m_pFile, "[%s] [%s] [%s] %s%s", ts, channelName, level, pMessage, needsNewline ? "\n" : "");
 		g_pFullFileSystem->Flush(m_pFile);
 	}
+}
+
+void KZLoggingListener::SetNewFileOnStartup(bool value)
+{
+	m_useDatetimeFilename = value;
 }
 
 void KZLoggingListener::OpenFile()

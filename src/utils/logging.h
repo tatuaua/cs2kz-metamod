@@ -56,7 +56,7 @@ class KZLoggingListener : public ILoggingListener
 {
 public:
 	void Log(const LoggingContext_t *pContext, const tchar *pMessage) override;
-	void SetNewFileOnStartup(bool value) { m_useDatetimeFilename = value; }
+	void SetNewFileOnStartup(bool value);
 	void OpenFile();
 	void CloseFile();
 
