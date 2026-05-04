@@ -32,7 +32,7 @@ public:
 			NETWORK_DISCONNECT_KICKED_CONVICTEDACCOUNT, // BhopHack
 			NETWORK_DISCONNECT_KICKED_INPUTAUTOMATION,  // Hyperscroll
 			NETWORK_DISCONNECT_KICKED_CONVICTEDACCOUNT, // InvalidCvar
-			NETWORK_DISCONNECT_KICKED_CONVICTEDACCOUNT, // InvalidInput
+			NETWORK_DISCONNECT_KICKED_UNTRUSTEDACCOUNT, // InvalidInput
 			NETWORK_DISCONNECT_KICKED_INPUTAUTOMATION,  // Nulls
 			NETWORK_DISCONNECT_KICKED_INPUTAUTOMATION,  // SubtickSpam
 			NETWORK_DISCONNECT_KICKED_INPUTAUTOMATION   // Desubtick
@@ -48,7 +48,7 @@ public:
 			31556926.0f * 5,      // BhopHack - 5 years
 			60.0f * 24 * 60 * 60, // Hyperscroll - 60 days
 			31556926.0f * 5,      // InvalidCvar - 5 years
-			31556926.0f * 5,      // InvalidInput - 5 years
+			60.0f * 24 * 60 * 60, // InvalidInput - 60 days
 			-1.0f,                // Nulls - no ban, just kick (for now)
 			-1.0f,                // SubtickSpam - no ban, just kick (for now)
 			-1.0f                 // Desubtick - kick only
