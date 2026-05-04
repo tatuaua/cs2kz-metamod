@@ -2,7 +2,6 @@
 #include "filesystem.h"
 #include "cs2kz.h"
 
-extern CConVar<bool> kz_replay_recording_debug;
 
 ReplayFileWriter::ReplayFileWriter() {}
 
@@ -19,10 +18,7 @@ void ReplayFileWriter::Start()
 	}
 	m_terminate = false;
 	m_thread = std::make_unique<std::thread>(&ReplayFileWriter::ThreadRun, this);
-	if (kz_replay_recording_debug.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: File writer thread started\n");
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "File writer thread started\n");
 }
 
 void ReplayFileWriter::Stop()
@@ -44,10 +40,7 @@ void ReplayFileWriter::Stop()
 	}
 	m_thread.reset();
 
-	if (kz_replay_recording_debug.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: File writer thread stopped\n");
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "File writer thread stopped\n");
 }
 
 void ReplayFileWriter::QueueWrite(std::unique_ptr<Recorder> recorder)

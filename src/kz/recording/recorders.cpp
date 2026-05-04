@@ -10,7 +10,6 @@
 #include "sdk/usercmd.h"
 #include "kz/replays/compression.h"
 
-extern CConVar<bool> kz_replay_recording_debug;
 
 ManualRecorder::ManualRecorder(KZPlayer *player, f32 duration, KZPlayer *savedBy) : Recorder(player, duration, RP_MANUAL, true, DistanceTier_None)
 {
@@ -290,40 +289,22 @@ bool Recorder::WriteToFile()
 	i32 bytesWritten = 0;
 	bytesWritten += this->WriteHeader(file);
 
-	if (kz_replay_recording_debug.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Wrote replay header (%d bytes)\n", bytesWritten);
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Wrote replay header (%d bytes)\n", bytesWritten);
 	bytesWritten += KZ::replaysystem::compression::WriteTickDataCompressed(file, this->tickData, this->subtickData);
 
-	if (kz_replay_recording_debug.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Wrote tick data (%d bytes)\n", bytesWritten);
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Wrote tick data (%d bytes)\n", bytesWritten);
 	bytesWritten += KZ::replaysystem::compression::WriteWeaponsCompressed(file, this->weaponTable);
 
-	if (kz_replay_recording_debug.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Wrote weapons (%d bytes)\n", bytesWritten);
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Wrote weapons (%d bytes)\n", bytesWritten);
 	bytesWritten += KZ::replaysystem::compression::WriteJumpsCompressed(file, this->jumps);
 
-	if (kz_replay_recording_debug.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Wrote jumps (%d bytes)\n", bytesWritten);
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Wrote jumps (%d bytes)\n", bytesWritten);
 	bytesWritten += KZ::replaysystem::compression::WriteEventsCompressed(file, this->rpEvents);
 
-	if (kz_replay_recording_debug.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Wrote events (%d bytes)\n", bytesWritten);
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Wrote events (%d bytes)\n", bytesWritten);
 	bytesWritten += KZ::replaysystem::compression::WriteCmdDataCompressed(file, this->cmdData, this->cmdSubtickData);
 
-	if (kz_replay_recording_debug.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Wrote cmd data (%d bytes)\n", bytesWritten);
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Wrote cmd data (%d bytes)\n", bytesWritten);
 	// Close the file before renaming
 	g_pFullFileSystem->Close(file);
 
@@ -335,10 +316,7 @@ bool Recorder::WriteToFile()
 		return false;
 	}
 
-	if (kz_replay_recording_debug.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Saved replay to %s (%d bytes)\n", finalFilename, bytesWritten);
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Saved replay to %s (%d bytes)\n", finalFilename, bytesWritten);
 
 	return true;
 }

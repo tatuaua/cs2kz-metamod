@@ -16,7 +16,6 @@
 
 #include <set>
 
-CConVar<bool> kz_replay_recording_debug("kz_replay_recording_debug", FCVAR_NONE, "Debug replay recording", false);
 CConVar<i32> kz_replay_recording_min_jump_tier("kz_replay_recording_min_jump_tier", FCVAR_CHEAT, "Minimum jump tier to record for jumpstat replays",
 											   DistanceTier_Wrecker, true, DistanceTier_Meh, true, DistanceTier_Wrecker);
 extern CSteamGameServerAPIContext g_steamAPI;
@@ -256,10 +255,7 @@ void KZRecordingService::CheckRecorders()
 		if (recorder.ShouldStopAndSave(g_pKZUtils->GetServerGlobals()->curtime))
 		{
 			// Stop this recorder and queue for async write
-			if (kz_replay_recording_debug.Get())
-			{
-				KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Run recorder stopped\n");
-			}
+			KZ_LOG_DEBUG(LogChannel::Recording, "Run recorder stopped\n");
 			if (fileWriter)
 			{
 				CPlayerUserId userID = this->player->GetClient()->GetUserID();
@@ -301,10 +297,7 @@ void KZRecordingService::CheckRecorders()
 		if (recorder.ShouldStopAndSave(g_pKZUtils->GetServerGlobals()->curtime))
 		{
 			// Stop this recorder and queue for async write
-			if (kz_replay_recording_debug.Get())
-			{
-				KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Jump recorder stopped\n");
-			}
+			KZ_LOG_DEBUG(LogChannel::Recording, "Jump recorder stopped\n");
 			if (fileWriter)
 			{
 				auto recorderPtr = std::make_unique<JumpRecorder>(std::move(recorder));
@@ -357,10 +350,7 @@ void KZRecordingService::CheckModeStyles()
 		V_strncpy(event.data.modeChange.name, currentModeInfo.longModeName.Get(), sizeof(event.data.modeChange.name));
 		V_strncpy(event.data.modeChange.md5, currentModeInfo.md5, sizeof(event.data.modeChange.md5));
 		this->InsertEvent(event);
-		if (kz_replay_recording_debug.Get())
-		{
-			KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Mode change event: %s\n", currentModeInfo.longModeName.Get());
-		}
+		KZ_LOG_DEBUG(LogChannel::Recording, "Mode change event: %s\n", currentModeInfo.longModeName.Get());
 	}
 	bool refreshStyles = this->player->styleServices.Count() != this->lastKnownStyles.size();
 	if (!refreshStyles)
@@ -397,11 +387,7 @@ void KZRecordingService::CheckModeStyles()
 			refreshStyles = false; // only the first styleChange needs to have clearStyles = true
 			this->InsertEvent(event);
 		}
-		if (kz_replay_recording_debug.Get())
-		{
-			KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Style change event: %u styles\n",
-						(unsigned int)this->lastKnownStyles.size());
-		}
+		KZ_LOG_DEBUG(LogChannel::Recording, "Style change event: %u styles\n", (unsigned int)this->lastKnownStyles.size());
 	}
 
 	if (!this->circularRecording->earliestMode.has_value())
@@ -535,10 +521,7 @@ void KZRecordingService::CopyWeaponsToRecorder(Recorder *recorder)
 		}
 	}
 
-	if (kz_replay_recording_debug.Get())
-	{
-		KZ_LOG_INFO(LogChannel::Recording, "kz_replay_recording_debug: Copying %zu referenced weapons to recorder\n", referencedWeaponIndices.size());
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Copying %zu referenced weapons to recorder\n", referencedWeaponIndices.size());
 
 	for (i32 weaponIndex : referencedWeaponIndices)
 	{
