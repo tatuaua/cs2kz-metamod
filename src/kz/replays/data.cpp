@@ -8,7 +8,6 @@
 #include <mutex>
 #include <atomic>
 
-CConVar<bool> kz_replay_playback_debug("kz_replay_playback_debug", FCVAR_NONE, "Prints debug info about replay playback.", false);
 CConVar<bool> kz_replay_playback_skins_enable("kz_replay_playback_skins_enable", FCVAR_NONE, "Enables applying player skins during replay playback.",
 											  true);
 
@@ -153,10 +152,7 @@ namespace KZ::replaysystem::data
 		{
 			size_t bytesRead = g_pFullFileSystem->Tell(file);
 			progress = static_cast<f32>(bytesRead) / static_cast<f32>(fileSize);
-			if (kz_replay_playback_debug.Get())
-			{
-				KZ_LOG_INFO(LogChannel::Replays, "Replay load progress: %zu bytes, %.2f%%\n", bytesRead, progress.load() * 100.0f);
-			}
+			KZ_LOG_DEBUG(LogChannel::Replays, "Replay load progress: %zu bytes, %.2f%%\n", bytesRead, progress.load() * 100.0f);
 		}
 	}
 
@@ -181,10 +177,7 @@ namespace KZ::replaysystem::data
 			g_pFullFileSystem->Close(file);
 			return result;
 		}
-		if (kz_replay_playback_debug.Get())
-		{
-			KZ_LOG_INFO(LogChannel::Replays, "Loading replay protobuf header...\n");
-		}
+		KZ_LOG_DEBUG(LogChannel::Replays, "Loading replay protobuf header...\n");
 		u32 headerSize = 0;
 		if (g_pFullFileSystem->Read(&headerSize, sizeof(headerSize), file) != sizeof(headerSize))
 		{
@@ -222,10 +215,7 @@ namespace KZ::replaysystem::data
 			g_pFullFileSystem->Close(file);
 			return result;
 		}
-		if (kz_replay_playback_debug.Get())
-		{
-			KZ_LOG_INFO(LogChannel::Replays, "Loading compressed tick data...\n");
-		}
+		KZ_LOG_DEBUG(LogChannel::Replays, "Loading compressed tick data...\n");
 
 		std::vector<TickData> tickDataVec;
 		std::vector<SubtickData> subtickDataVec;
@@ -260,10 +250,7 @@ namespace KZ::replaysystem::data
 			g_pFullFileSystem->Close(file);
 			return {};
 		}
-		if (kz_replay_playback_debug.Get())
-		{
-			KZ_LOG_INFO(LogChannel::Replays, "Loading weapons...\n");
-		}
+		KZ_LOG_DEBUG(LogChannel::Replays, "Loading weapons...\n");
 
 		std::vector<std::pair<i32, EconInfo>> weaponTableVec;
 
@@ -298,10 +285,7 @@ namespace KZ::replaysystem::data
 			g_pFullFileSystem->Close(file);
 			return {};
 		}
-		if (kz_replay_playback_debug.Get())
-		{
-			KZ_LOG_INFO(LogChannel::Replays, "Loading compressed jump stats...\n");
-		}
+		KZ_LOG_DEBUG(LogChannel::Replays, "Loading compressed jump stats...\n");
 
 		std::vector<RpJumpStats> jumpsVec;
 
@@ -344,10 +328,7 @@ namespace KZ::replaysystem::data
 			g_pFullFileSystem->Close(file);
 			return {};
 		}
-		if (kz_replay_playback_debug.Get())
-		{
-			KZ_LOG_INFO(LogChannel::Replays, "Loading compressed events...\n");
-		}
+		KZ_LOG_DEBUG(LogChannel::Replays, "Loading compressed events...\n");
 
 		std::vector<RpEvent> eventsVec;
 

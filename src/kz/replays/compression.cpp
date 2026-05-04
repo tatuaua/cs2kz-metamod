@@ -5,8 +5,6 @@
 
 using namespace KZ::replaysystem::compression;
 
-extern CConVar<bool> kz_replay_playback_debug;
-
 // ========================================
 // Helper functions
 // ========================================
@@ -670,7 +668,7 @@ bool KZ::replaysystem::compression::ReadWeaponsCompressed(FileHandle_t file, std
 			memcpy(&econInfo.attributes[i], readPtr, sizeof(EconInfo::attributes[0]));
 			readPtr += sizeof(EconInfo::attributes[0]);
 		}
-		KZ_LOG_INFO(LogChannel::Replays, "Read weapon ID %d with %d attributes\n", weaponID, econInfo.mainInfo.numAttributes);
+		KZ_LOG_DEBUG(LogChannel::Replays, "Read weapon ID %d with %d attributes\n", weaponID, econInfo.mainInfo.numAttributes);
 		outWeaponTable.emplace_back(weaponID, econInfo);
 	}
 
