@@ -86,6 +86,7 @@ SCMD(kz_tpsound, SCFL_CHECKPOINT | SCFL_PREFERENCE)
 {
 	KZPlayer *player = g_pKZPlayerManager->ToPlayer(controller);
 	player->checkpointService->teleportSound = !player->checkpointService->teleportSound;
+	player->optionService->SetPreferenceBool("teleportSound", player->checkpointService->teleportSound);
 	if (player->checkpointService->teleportSound)
 	{
 		player->languageService->PrintChat(true, false, "Checkpoint Options - Teleport Sound - Enable");

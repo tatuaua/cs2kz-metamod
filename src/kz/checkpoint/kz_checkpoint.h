@@ -87,6 +87,8 @@ public:
 
 	void TpToStartPosition();
 
+	void PlayCheckpointErrorSound();
+	void PlayTeleportErrorSound();
 	void PlayCheckpointSound();
 	void PlayTeleportSound();
 	void PlayCheckpointResetSound();
