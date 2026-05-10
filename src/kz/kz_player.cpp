@@ -28,6 +28,7 @@
 #include "profile/kz_profile.h"
 #include "pistol/kz_pistol.h"
 #include "fov/kz_fov.h"
+#include "menu/kz_menu.h"
 
 #include "sdk/datatypes.h"
 #include "sdk/entity/cbasetrigger.h"
@@ -64,6 +65,7 @@ void KZPlayer::Init()
 	delete this->profileService;
 	delete this->pistolService;
 	delete this->fovService;
+	delete this->menuService;
 
 	this->anticheatService = new KZAnticheatService(this);
 	this->beamService = new KZBeamService(this);
@@ -89,6 +91,7 @@ void KZPlayer::Init()
 	this->profileService = new KZProfileService(this);
 	this->pistolService = new KZPistolService(this);
 	this->fovService = new KZFOVService(this);
+	this->menuService = new KZMenuService(this);
 
 	KZ::mode::InitModeService(this);
 }
@@ -173,6 +176,7 @@ void KZPlayer::OnPhysicsSimulate()
 		this->styleServices[i]->OnPhysicsSimulate();
 	}
 	this->hudService->OnPhysicsSimulate();
+	this->menuService->OnPhysicsSimulate();
 	this->noclipService->HandleMoveCollision();
 	this->EnableGodMode();
 	this->UpdatePlayerModelAlpha();
@@ -203,6 +207,7 @@ void KZPlayer::OnPhysicsSimulatePost()
 	{
 		KZHUDService::DrawPanels(this, this);
 	}
+	this->menuService->DrawMenu();
 	this->measureService->OnPhysicsSimulatePost();
 	this->quietService->OnPhysicsSimulatePost();
 	this->profileService->OnPhysicsSimulatePost();
