@@ -1,11 +1,33 @@
 #pragma once
 #include "../kz.h"
+#include <type_traits>
 #include "utils/utils.h"
 #include "KeyValues.h"
 #include "interfaces/interfaces.h"
 #include "filesystem.h"
 #include "keyvalues3.h"
 #include "utils/eventlisteners.h"
+
+enum class KZPreference : i32
+{
+	CompactPanel = 0,
+	DesiredBeamType,
+	JsVolume,
+	BeamOffset,
+	Language
+};
+
+// Define the mapping traits
+template<KZPreference P>
+struct KZPreferenceTraits;
+
+// Specializations: each provides 'key', 'Type', and 'GetDefault()'
+// To add a preference: add an enum member above (before COUNT), then add a specialization below.
+template<> struct KZPreferenceTraits<KZPreference::CompactPanel>    { static constexpr const char *key = "compactPanel";    using Type = bool;   static constexpr Type GetDefault() { return false;                       } };
+template<> struct KZPreferenceTraits<KZPreference::DesiredBeamType> { static constexpr const char *key = "desiredBeamType"; using Type = i64;    static constexpr Type GetDefault() { return 0;                           } };
+template<> struct KZPreferenceTraits<KZPreference::JsVolume>        { static constexpr const char *key = "jsVolume";        using Type = f64;    static constexpr Type GetDefault() { return 0.5;                         } };
+template<> struct KZPreferenceTraits<KZPreference::BeamOffset>      { static constexpr const char *key = "beamOffset";      using Type = Vector; static         Type GetDefault() { return Vector(0.0f, 0.0f, 1.75f); } };
+template<> struct KZPreferenceTraits<KZPreference::Language> 	  	{ static constexpr const char *key = "language";        using Type = CUtlString; static Type GetDefault() { return "english";                     } };
 
 class KZOptionServiceEventListener
 {
@@ -70,6 +92,59 @@ public:
 	{
 		SaveKV3AsJSON(&this->prefKV, error, output);
 	}
+
+	template<KZPreference P>
+    void SetPreference(typename KZPreferenceTraits<P>::Type value)
+    {
+        constexpr const char *prefName = KZPreferenceTraits<P>::key;
+
+        if (userSetPrefs.Find(prefName) == userSetPrefs.InvalidIndex())
+        {
+            userSetPrefs.AddToTail(prefName);
+        }
+
+        using T = typename KZPreferenceTraits<P>::Type;
+
+        if constexpr (std::is_same_v<T, bool>) {
+            prefKV.FindOrCreateMember(prefName)->SetBool(value);
+        } else if constexpr (std::is_same_v<T, i64>) {
+            prefKV.FindOrCreateMember(prefName)->SetInt64(value);
+        } else if constexpr (std::is_same_v<T, f64>) {
+            prefKV.FindOrCreateMember(prefName)->SetDouble(value);
+        } else if constexpr (std::is_same_v<T, CUtlString>) {
+            prefKV.FindOrCreateMember(prefName)->SetString(value.Get());
+        } else if constexpr (std::is_same_v<T, Vector>) {
+            prefKV.FindOrCreateMember(prefName)->SetVector(value);
+        }
+
+        CALL_FORWARD(eventListeners, OnPlayerPreferenceChanged, this->player, prefName);
+    }
+
+	template<KZPreference P>
+    typename KZPreferenceTraits<P>::Type GetPreference()
+    {
+        using T = typename KZPreferenceTraits<P>::Type;
+        KeyValues3 *option = prefKV.FindMember(KZPreferenceTraits<P>::key);
+
+        if (!option)
+        {
+            return KZPreferenceTraits<P>::GetDefault();
+        }
+
+        if constexpr (std::is_same_v<T, bool>) {
+            return option->GetBool(KZPreferenceTraits<P>::GetDefault());
+        } else if constexpr (std::is_same_v<T, i64>) {
+            return option->GetInt64(KZPreferenceTraits<P>::GetDefault());
+        } else if constexpr (std::is_same_v<T, f64>) {
+            return option->GetDouble(KZPreferenceTraits<P>::GetDefault());
+        } else if constexpr (std::is_same_v<T, CUtlString>) {
+            return option->GetString(KZPreferenceTraits<P>::GetDefault());
+        } else if constexpr (std::is_same_v<T, Vector>) {
+            return option->GetVector(KZPreferenceTraits<P>::GetDefault());
+        } else {
+            static_assert(!sizeof(T), "Unsupported KZ preference type");
+        }
+    }
 
 	// Due to the way keyvalues3.h is written, we can't template these functions.
 	void SetPreferenceBool(const char *optionName, bool value)

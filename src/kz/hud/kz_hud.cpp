@@ -225,12 +225,14 @@ void KZTimerServiceEventListener_HUD::OnTimerEndPost(KZPlayer *player, u32 cours
 
 bool KZHUDService::IsCompactPanel()
 {
-	return this->player->optionService->GetPreferenceBool("compactPanel");
+	return this->player->optionService->GetPreference<KZPreference::CompactPanel>();
 }
 
 void KZHUDService::ToggleCompactPanel()
 {
-	this->player->optionService->SetPreferenceBool("compactPanel", !this->IsCompactPanel());
+	//this->player->optionService->SetPreferenceBool("compactPanel", !this->IsCompactPanel());
+	//this->player->optionService->SetPreference<KZPreference::CompactPanel>(!this->IsCompactPanel());
+	this->player->optionService->SetPreference<KZPreference::CompactPanel>("balls");
 }
 
 SCMD(kz_panel, SCFL_HUD)
